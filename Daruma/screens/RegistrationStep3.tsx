@@ -76,10 +76,13 @@ const RegistrationStep3: React.FC<any> = ({ navigation }) => {
         additionalImagesURLs.push(additionalImageURL);
       }
 
-      // Atualizar o Firestore com as URLs das imagens
+      // Atualizar o Firestore com as URLs das imagens e novos campos padrão
       await updateDoc(doc(db, 'users', userId), {
         profilePicture: profileImageURL,
         additionalPictures: additionalImagesURLs,
+        likedUsers: [], // Lista vazia por padrão
+        dislikedUsers: [], // Lista vazia por padrão
+        accountType: 'normal', // Tipo de conta padrão
       });
 
       setLoading(false);

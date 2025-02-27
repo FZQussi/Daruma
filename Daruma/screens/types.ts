@@ -9,5 +9,7 @@ export type RootStackParamList = {
     Home: undefined;  // No parameters for Home screen
     ChatScreen: { chatRoomId: string };  // Expect a chatRoomId parameter in ChatScreen
     ChatQueue: undefined;  // No parameters for ChatQueue screen
+    MatchScreen: undefined;
+    MatchChats: { matchId: string };
+    MatchList: undefined;
   };
-  
