@@ -1,15 +1,21 @@
 // src/screens/RegistrationStep2.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
+import { useRegistration } from '../context/RegistrationContext';
 
 const RegistrationStep2: React.FC<any> = ({ navigation }) => {
-  const [gender, setGender] = useState('');
-  const [preferences, setPreferences] = useState('');
+  const { userData, setUserData } = useRegistration();
+  const [gender, setGender] = useState(userData.gender || '');
+  const [preferences, setPreferences] = useState(userData.preferences || '');
+
+  useEffect(() => {
+    // Atualizar os dados no contexto caso haja alteração
+    setUserData({ ...userData, gender, preferences });
+  }, [gender, preferences, setUserData, userData]);
 
   const handleNextStep = () => {
-    // Aqui você pode salvar as preferências no Firestore ou em um estado global
-    navigation.navigate('RegistrationStep3'); // Passa para a próxima etapa
+    navigation.navigate('RegistrationStep3');
   };
 
   return (
@@ -64,3 +70,4 @@ const styles = StyleSheet.create({
 });
 
 export default RegistrationStep2;
+

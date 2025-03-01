@@ -1,3 +1,4 @@
+// src/screens/RegistrationStep3.tsx
 import React, { useState } from 'react';
 import { View, Text, Button, StyleSheet, Image, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
@@ -5,10 +6,12 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore, doc, updateDoc } from 'firebase/firestore';
 import { app } from './firebaseConfig';
 import uploadToCloudinary from './uploadToCloudinary'; // Função para enviar imagens ao Cloudinary
+import { useRegistration } from '../context/RegistrationContext';
 
 const db = getFirestore(app); // Firestore
 
 const RegistrationStep3: React.FC<any> = ({ navigation }) => {
+  const { userData, setUserData } = useRegistration();
   const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
   const [additionalImagesUri, setAdditionalImagesUri] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -48,13 +51,12 @@ const RegistrationStep3: React.FC<any> = ({ navigation }) => {
     }
   };
 
-  // Função para fazer upload das imagens ao Cloudinary
   const uploadImages = async () => {
     if (!profileImageUri) {
       setError('Selecione uma foto de perfil!');
       return;
     }
-
+  
     setLoading(true);
     try {
       const user = getAuth(app).currentUser;
@@ -65,35 +67,37 @@ const RegistrationStep3: React.FC<any> = ({ navigation }) => {
         setError('Usuário não autenticado!');
         return;
       }
-
+  
       // Enviar imagem de perfil ao Cloudinary
       const profileImageURL = await uploadToCloudinary(profileImageUri);
-
+  
       // Enviar imagens adicionais ao Cloudinary
       const additionalImagesURLs: string[] = [];
       for (let i = 0; i < additionalImagesUri.length; i++) {
         const additionalImageURL = await uploadToCloudinary(additionalImagesUri[i]);
         additionalImagesURLs.push(additionalImageURL);
       }
-
-      // Atualizar o Firestore com as URLs das imagens e novos campos padrão
-      await updateDoc(doc(db, 'users', userId), {
+  
+      // Atualizar o estado global com as URLs das imagens e outros dados
+      setUserData({
+        ...userData,
         profilePicture: profileImageURL,
         additionalPictures: additionalImagesURLs,
         likedUsers: [], // Lista vazia por padrão
         dislikedUsers: [], // Lista vazia por padrão
         accountType: 'normal', // Tipo de conta padrão
       });
-
+  
       setLoading(false);
       Alert.alert('Sucesso', 'Fotos carregadas com sucesso!');
       navigation.navigate('Home');
-
+  
     } catch (error: any) {
       setLoading(false);
       setError('Erro ao enviar as imagens: ' + error.message);
     }
   };
+  
 
   return (
     <View style={styles.container}>

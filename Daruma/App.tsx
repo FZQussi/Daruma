@@ -17,6 +17,7 @@ import MatchScreen from './screens/MatchScreen';
 import MatchChat from './screens/MatchChat';
 import { useNavigation } from '@react-navigation/native';
 import MatchListScreen from './screens/MatchListScreen';
+import { RegistrationProvider } from './context/RegistrationContext';
 
 // Definição dos tipos das rotas
 export type RootStackParamList = {

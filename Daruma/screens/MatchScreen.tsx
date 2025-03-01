@@ -1,21 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, Image, Text, StyleSheet, Button } from 'react-native';
-import { 
-  getFirestore, 
-  collection, 
-  getDocs, 
-  doc, 
-  updateDoc, 
-  getDoc, 
-  arrayUnion, 
-  arrayRemove, 
-  setDoc 
-} from 'firebase/firestore';
+import { getFirestore, collection, getDocs, doc, updateDoc, getDoc, arrayUnion, arrayRemove, setDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { app } from './firebaseConfig';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from './types';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from './types';  // Certifique-se de importar o RootStackParamList corretamente
 
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -153,9 +143,9 @@ const MatchScreen = () => {
           </View>
           <Button title="Próximo" onPress={getNextProfile} />
           <Button
-  title="Ver Meus Matches"
-  onPress={() => navigation.navigate('MatchList')}
-/>
+            title="Ver Meus Matches"
+            onPress={() => navigation.navigate('MatchList')}
+          />
         </>
       ) : (
         <Text>Nenhum perfil disponível no momento.</Text>
