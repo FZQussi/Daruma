@@ -1,4 +1,3 @@
-// ChatQueue.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Button, Text, StyleSheet } from 'react-native';
 import { collection, addDoc, onSnapshot, deleteDoc, doc, setDoc } from 'firebase/firestore';
@@ -28,15 +27,23 @@ const ChatQueue: React.FC<any> = ({ navigation }) => {
     if (userId) {
       const unsubscribe = onSnapshot(collection(db, 'chatQueue'), async (snapshot) => {
         const users = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        
+
         if (users.length >= 2) {
           const [user1, user2] = users;
 
           // Criar uma sala de chat para os dois utilizadores
           const chatRoomId = `${user1.id}_${user2.id}`;
-          await setDoc(doc(db, 'chatRooms', chatRoomId), {
+
+          const chatRoomData = {
             users: [user1.id, user2.id],
-          });
+            status: 'open', // O status do chat é 'open'
+            createdAt: new Date().toISOString(), // Data de criação do chat
+            isUser1InChat: true, // Indicador de que o user 1 está no chat
+            isUser2InChat: true, // Indicador de que o user 2 está no chat
+          };
+
+          // Garantir que o chatRoom está sendo criado com todos os campos
+          await setDoc(doc(db, 'chatRooms', chatRoomId), chatRoomData);
 
           // Remover os utilizadores da fila de espera
           await deleteDoc(doc(db, 'chatQueue', user1.id));

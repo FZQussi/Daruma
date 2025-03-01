@@ -101,24 +101,23 @@ const BottomNavBar = () => {
 const App: React.FC = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Login">
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="EmailLogin" component={EmailLogin} />
-        <Stack.Screen name="PhoneLogin" component={PhoneLogin} />
-        <Stack.Screen name="RegistrationStep1" component={RegistrationStep1} />
-        <Stack.Screen name="RegistrationStep2" component={RegistrationStep2} />
-        <Stack.Screen name="RegistrationStep3" component={RegistrationStep3} />
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="ChatScreen" component={ChatScreen} />
-        <Stack.Screen name="ChatQueue" component={ChatQueue} />
-        <Stack.Screen name="Profile" component={ProfileScreen} />
-        <Stack.Screen name="Encounters" component={EncountersScreen} />
-        <Stack.Screen name="Likes" component={LikesScreen} />
-        <Stack.Screen name="MatchScreen" component={MatchScreen} />
-        <Stack.Screen name="MatchChats" component={MatchChat} />
-        <Stack.Screen name="MatchList" component={MatchListScreen} />
-        
-      </Stack.Navigator>
+    <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+  <Stack.Screen name="Login" component={LoginScreen} />
+  <Stack.Screen name="EmailLogin" component={EmailLogin} />
+  <Stack.Screen name="PhoneLogin" component={PhoneLogin} />
+  <Stack.Screen name="RegistrationStep1" component={RegistrationStep1} />
+  <Stack.Screen name="RegistrationStep2" component={RegistrationStep2} />
+  <Stack.Screen name="RegistrationStep3" component={RegistrationStep3} />
+  <Stack.Screen name="Home" component={HomeScreen} />
+  <Stack.Screen name="ChatScreen" component={ChatScreen} />
+  <Stack.Screen name="ChatQueue" component={ChatQueue} />
+  <Stack.Screen name="Profile" component={ProfileScreen} />
+  <Stack.Screen name="Encounters" component={EncountersScreen} />
+  <Stack.Screen name="Likes" component={LikesScreen} />
+  <Stack.Screen name="MatchScreen" component={MatchScreen} />
+  <Stack.Screen name="MatchChats" component={MatchChat} />
+  <Stack.Screen name="MatchList" component={MatchListScreen} />
+</Stack.Navigator>  
     </NavigationContainer>
   );
 };

@@ -1,37 +1,61 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, TextInput, Button, FlatList, Text, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { collection, addDoc, query, onSnapshot, orderBy, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { 
+  View, TextInput, Button, FlatList, Text, StyleSheet, KeyboardAvoidingView, Platform, ScrollView 
+} from 'react-native';
+import { collection, addDoc, query, onSnapshot, orderBy, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from './firebaseConfig';
 import { getAuth } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
-import { RootStackParamList } from './types'; // Certifique-se de importar o tipo da navegação
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { StackNavigationProp } from '@react-navigation/stack';
 
-type NavigationType = NativeStackNavigationProp<RootStackParamList, 'ChatScreen'>;
+// Definição das rotas
+type RootStackParamList = {
+  ChatQueue: undefined;
+  ChatScreen: { chatRoomId: string };
+  Home: undefined;
+};
 
 const ChatScreen: React.FC<any> = ({ route }) => {
-  const { chatRoomId } = route.params; // Receber o ID da sala
+  const { chatRoomId } = route.params;
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [userLikes, setUserLikes] = useState<{ [key: string]: boolean }>({}); // Armazenar o estado de Like/Dislike
-  const [isChatClosed, setIsChatClosed] = useState(false); // Monitorar o status de fechamento do chat
-  const flatListRef = useRef<FlatList>(null); // Referência para a FlatList
-
+  const [isChatClosed, setIsChatClosed] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
   const currentUser = getAuth().currentUser;
-  const navigation = useNavigation<NavigationType>(); // Navegação com tipagem correta
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-  // Função para enviar mensagem
+  // Função para atualizar o status do usuário (indica se ele saiu do chat)
+  const updateUserStatusInChat = async (isUserInChat: boolean) => {
+    if (!currentUser) return;
+    try {
+      const chatRef = doc(db, 'chatRooms', chatRoomId);
+      if (currentUser.uid === chatRoomId) {
+        // Atualiza o campo isUser1InChat ou isUser2InChat dependendo de quem está saindo
+        await updateDoc(chatRef, {
+          [`isUser1InChat`]: isUserInChat
+        });
+      } else {
+        // Atualiza para o segundo usuário
+        await updateDoc(chatRef, {
+          [`isUser2InChat`]: isUserInChat
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status no chat:', error);
+    }
+  };
+
+  // Enviar mensagem
   const sendMessage = async () => {
     if (message.trim() === '') return;
     try {
       setLoading(true);
-      const user = getAuth().currentUser;
-      if (user) {
+      if (currentUser) {
         await addDoc(collection(db, `chatRooms/${chatRoomId}/messages`), {
           text: message,
           createdAt: new Date().toISOString(),
-          userId: user.uid, // Salva o uid do remetente
+          userId: currentUser.uid,
         });
         setMessage('');
       }
@@ -56,139 +80,111 @@ const ChatScreen: React.FC<any> = ({ route }) => {
     return () => unsubscribe();
   }, [chatRoomId]);
 
-  // Função para rolar até a última mensagem
+  // Verificar status do chat em tempo real
   useEffect(() => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToEnd({ animated: true });
-    }
-  }, [messages]);
+    const checkChatStatus = async () => {
+      const chatRef = doc(db, 'chatRooms', chatRoomId);
+      const chatSnap = await getDoc(chatRef);
 
-  // Função para verificar o estado do Like/Dislike
-  useEffect(() => {
-    const fetchLikesStatus = async () => {
-      if (!currentUser) return;
-      const chatRoomRef = doc(db, 'chatRooms', chatRoomId);
-      const chatRoomDoc = await getDoc(chatRoomRef);
-      if (chatRoomDoc.exists()) {
-        const data = chatRoomDoc.data();
-        if (data?.likes) {
-          setUserLikes(data.likes);
-        }
-        if (data?.isClosed) {
-          setIsChatClosed(data.isClosed);
+      if (chatSnap.exists()) {
+        const data = chatSnap.data();
+        // Se algum usuário estiver "offline" ou não estiver mais no chat, marcar chat como fechado
+        if (data?.isUser1InChat === false || data?.isUser2InChat === false) {
+          setIsChatClosed(true);
+        } else {
+          setIsChatClosed(false);
         }
       }
     };
 
-    fetchLikesStatus();
+    // Criar listener em tempo real para atualizar o status do chat
+    const unsubscribe = onSnapshot(doc(db, 'chatRooms', chatRoomId), (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        // Atualizar o estado de isChatClosed com base nos status dos usuários
+        if (data?.isUser1InChat === false || data?.isUser2InChat === false) {
+          setIsChatClosed(true);
+        } else {
+          setIsChatClosed(false);
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, [chatRoomId]);
 
-  // Função para lidar com o Like
-  const handleLike = async () => {
+  // Fechar chat e iniciar um novo
+  const handleNewChat = async () => {
     if (!currentUser) return;
 
-    const chatRoomRef = doc(db, 'chatRooms', chatRoomId);
-    const chatRoomDoc = await getDoc(chatRoomRef);
-
-    if (chatRoomDoc.exists()) {
-      const data = chatRoomDoc.data();
-      
-      // Atualiza os likes
-      let updatedLikes = { ...userLikes, [currentUser.uid]: true };
-
-      // Verificar se ambos os usuários deram like
-      const otherUser = Object.keys(userLikes).find((id) => id !== currentUser?.uid);
-      if (updatedLikes[currentUser.uid] && updatedLikes[otherUser || '']) {
-        // Criar o match
-        console.log('🎉 Match encontrado!');
-        
-        // Criar o match entre os dois usuários
-        const matchRef = doc(db, 'matches', `${currentUser.uid}_${otherUser}`);
-        await setDoc(matchRef, {
-          users: [currentUser.uid, otherUser],
-          createdAt: new Date(),
-        });
-
-        // Atualizar o estado do chat para fechado
-        await updateDoc(chatRoomRef, { isClosed: true });
-
-        // Redirecionar para a tela de MatchList
-        navigation.navigate('MatchList');
-      }
-
-      // Atualiza os likes na base de dados
-      await updateDoc(chatRoomRef, {
-        likes: updatedLikes,
+    try {
+      await updateDoc(doc(db, 'chatRooms', chatRoomId), {
+        status: 'closed',
       });
+
+      // Atualiza o status do usuário para "offline" ou "saiu"
+      await updateUserStatusInChat(false); // Marca o usuário como "não está mais no chat"
+
+      navigation.navigate('ChatQueue');
+    } catch (error) {
+      console.error('Erro ao fechar o chat:', error);
     }
   };
 
-  // Função para lidar com o Dislike
-  const handleDislike = async () => {
-    if (!currentUser) return;
-
-    const chatRoomRef = doc(db, 'chatRooms', chatRoomId);
-    const chatRoomDoc = await getDoc(chatRoomRef);
-
-    if (chatRoomDoc.exists()) {
-      const data = chatRoomDoc.data();
-
-      // Atualiza os likes e dislikes
-      let updatedLikes = { ...userLikes, [currentUser.uid]: false };
-
-      // Atualiza os dislikes e fecha o chat
-      await updateDoc(chatRoomRef, {
-        likes: updatedLikes,
-        isClosed: true, // Fecha o chat
-      });
-
-      console.log('Chat fechado!');
-      setIsChatClosed(true); // Atualiza o estado do chat na UI
-
-      // Redireciona para a tela de MatchList
-      navigation.navigate('MatchList');
+  // Sair e voltar para Home
+  const handleExit = () => {
+    if (currentUser) {
+      updateUserStatusInChat(false); // Marca o usuário como "não está mais no chat"
     }
+    navigation.navigate('Home');
   };
-
-  if (isChatClosed) {
-    return (
-      <View style={styles.container}>
-        <Text>Este chat foi fechado devido a um "dislike".</Text>
-      </View>
-    );
-  }
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <FlatList
-        ref={flatListRef}
-        data={messages}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          const isCurrentUser = item.userId === getAuth().currentUser?.uid;
-          return (
-            <View style={[styles.messageContainer, isCurrentUser ? styles.messageRight : styles.messageLeft]}>
-              <Text style={styles.message}>{item.text}</Text>
-            </View>
-          );
-        }}
-      />
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
+      {/* Botões no topo */}
+      <View style={styles.headerButtons}>
+        <Button title="Novo Chat" onPress={handleNewChat} />
+        <Button title="Sair" onPress={handleExit} color="red" />
+      </View>
 
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Digite a sua mensagem..."
-          value={message}
-          onChangeText={setMessage}
-          onSubmitEditing={sendMessage}
+      {/* Exibir mensagens */}
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <FlatList
+          ref={flatListRef}
+          data={messages}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => {
+            const isCurrentUser = item.userId === getAuth().currentUser?.uid;
+            return (
+              <View style={[styles.messageContainer, isCurrentUser ? styles.messageRight : styles.messageLeft]}>
+                <Text style={styles.message}>{item.text}</Text>
+              </View>
+            );
+          }}
         />
-        <Button title={loading ? 'Enviando...' : 'Enviar'} onPress={sendMessage} disabled={loading} />
-      </View>
+      </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <Button title="❌ Dislike" onPress={handleDislike} color="red" />
-        <Button title="❤️ Like" onPress={handleLike} color="green" />
-      </View>
+      {/* Verificar se o chat está fechado */}
+      {isChatClosed ? (
+        <View style={styles.closedChatContainer}>
+          <Text style={styles.closedChatMessage}>Este chat foi fechado.</Text>
+        </View>
+      ) : (
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Digite a sua mensagem..."
+            value={message}
+            onChangeText={setMessage}
+            onSubmitEditing={sendMessage}
+          />
+          <Button title={loading ? 'Enviando...' : 'Enviar'} onPress={sendMessage} disabled={loading} />
+        </View>
+      )}
     </KeyboardAvoidingView>
   );
 };
@@ -198,6 +194,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'space-between',
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   inputContainer: {
     flexDirection: 'row',
@@ -232,11 +233,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     maxWidth: '80%',
   },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
-    marginBottom: 10,
+  closedChatContainer: {
+    alignItems: 'center',
+    marginVertical: 10,
+  },
+  closedChatMessage: {
+    fontSize: 18,
+    color: 'red',
+    fontStyle: 'italic',
   },
 });
 
