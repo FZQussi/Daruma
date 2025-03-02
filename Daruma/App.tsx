@@ -3,21 +3,22 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { getAuth, signOut } from 'firebase/auth';
-import { app } from './screens/firebaseConfig';
-import ChatScreen from './screens/ChatScreen';
-import ChatQueue from './screens/ChatQueue';
-import LoginScreen from './screens/LoginScreen';  
-import EmailLogin from './screens/EmailLogin';    
-import PhoneLogin from './screens/PhoneLogin';   
-import RegistrationStep1 from './screens/RegistrationStep1'; 
-import RegistrationStep2 from './screens/RegistrationStep2';
-import RegistrationStep3 from './screens/RegistrationStep3'; 
-import ProfileScreen from './screens/ProfileScreen';
-import MatchScreen from './screens/MatchScreen';
-import MatchChat from './screens/MatchChat';
+import { app } from './src/screens/firebaseConfig';
+import ChatScreen from './src/screens/ChatScreen';
+import ChatQueue from './src/screens/ChatQueue';
+import LoginScreen from './src/screens/LoginScreen';  
+import EmailLogin from './src/screens/EmailLogin';    
+import PhoneLogin from './src/screens/PhoneLogin';   
+import RegistrationStep1 from './src/screens/RegistrationStep1'; 
+import RegistrationStep2 from './src/screens/RegistrationStep2';
+import RegistrationStep3 from './src/screens/RegistrationStep3'; 
+import ProfileScreen from './src/screens/ProfileScreen';
+import MatchScreen from './src/screens/MatchScreen';
+import MatchChat from './src/screens/MatchChat';
 import { useNavigation } from '@react-navigation/native';
-import MatchListScreen from './screens/MatchListScreen';
-import { RegistrationProvider } from './context/RegistrationContext';
+import MatchListScreen from './src/screens/MatchListScreen';
+import { RegistrationProvider } from './src/context/RegistrationContext';
+import Registration from './src/screens/Registration'; 
 
 // Definição dos tipos das rotas
 export type RootStackParamList = {
@@ -27,6 +28,7 @@ export type RootStackParamList = {
   RegistrationStep1: undefined;
   RegistrationStep2: undefined;
   RegistrationStep3: undefined;
+  Registration: undefined;
   Home: undefined;
   ChatScreen: undefined;
   ChatQueue: undefined;
@@ -100,25 +102,28 @@ const BottomNavBar = () => {
 
 const App: React.FC = () => {
   return (
-    <NavigationContainer>
-    <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
-  <Stack.Screen name="Login" component={LoginScreen} />
-  <Stack.Screen name="EmailLogin" component={EmailLogin} />
-  <Stack.Screen name="PhoneLogin" component={PhoneLogin} />
-  <Stack.Screen name="RegistrationStep1" component={RegistrationStep1} />
-  <Stack.Screen name="RegistrationStep2" component={RegistrationStep2} />
-  <Stack.Screen name="RegistrationStep3" component={RegistrationStep3} />
-  <Stack.Screen name="Home" component={HomeScreen} />
-  <Stack.Screen name="ChatScreen" component={ChatScreen} />
-  <Stack.Screen name="ChatQueue" component={ChatQueue} />
-  <Stack.Screen name="Profile" component={ProfileScreen} />
-  <Stack.Screen name="Encounters" component={EncountersScreen} />
-  <Stack.Screen name="Likes" component={LikesScreen} />
-  <Stack.Screen name="MatchScreen" component={MatchScreen} />
-  <Stack.Screen name="MatchChats" component={MatchChat} />
-  <Stack.Screen name="MatchList" component={MatchListScreen} />
-</Stack.Navigator>  
-    </NavigationContainer>
+    <RegistrationProvider> {/* Agora o RegistrationProvider envolve toda a aplicação */}
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="EmailLogin" component={EmailLogin} />
+          <Stack.Screen name="PhoneLogin" component={PhoneLogin} />
+          <Stack.Screen name="Registration" component={Registration} />
+          <Stack.Screen name="RegistrationStep1" component={RegistrationStep1} />
+          <Stack.Screen name="RegistrationStep2" component={RegistrationStep2} />
+          <Stack.Screen name="RegistrationStep3" component={RegistrationStep3} />
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="ChatScreen" component={ChatScreen} />
+          <Stack.Screen name="ChatQueue" component={ChatQueue} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="Encounters" component={EncountersScreen} />
+          <Stack.Screen name="Likes" component={LikesScreen} />
+          <Stack.Screen name="MatchScreen" component={MatchScreen} />
+          <Stack.Screen name="MatchChats" component={MatchChat} />
+          <Stack.Screen name="MatchList" component={MatchListScreen} />
+        </Stack.Navigator>  
+      </NavigationContainer>
+    </RegistrationProvider> 
   );
 };
 
@@ -142,4 +147,3 @@ const styles = StyleSheet.create({
 });
 
 export default App;
-
