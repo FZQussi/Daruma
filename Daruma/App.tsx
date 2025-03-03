@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
+import 'react-native-gesture-handler';
 import { View, Text, Button, StyleSheet } from 'react-native';
-import { getAuth, signOut } from 'firebase/auth';
-import { app } from './src/screens/firebaseConfig';
-import ChatScreen from './src/screens/ChatScreen2';
+import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
+import { app } from './src/screens/firebaseConfig';  // Importa a configuração do Firebase
+
+import ChatScreen from './src/screens/ChatScreen';
 import ChatQueue from './src/screens/ChatQueue';
 import LoginScreen from './src/screens/LoginScreen';  
 import EmailLogin from './src/screens/EmailLogin';    
@@ -19,6 +21,7 @@ import { useNavigation } from '@react-navigation/native';
 import MatchListScreen from './src/screens/MatchListScreen';
 import { RegistrationProvider } from './src/context/RegistrationContext';
 import Registration from './src/screens/Registration'; 
+import Profile from './src/screens/Profile';
 
 // Definição dos tipos das rotas
 export type RootStackParamList = {
@@ -38,6 +41,7 @@ export type RootStackParamList = {
   MatchScreen: undefined;
   MatchChats: { matchId: string };
   MatchList: undefined;
+  MatchProfile: { userId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -65,12 +69,11 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
   const auth = getAuth(app);
 
   const handleLogout = async () => {
-    await signOut(auth);
-    navigation.navigate('Login');
-  };
-
-  const navigateToMatchChats = (matchId: string) => {
-    navigation.navigate('MatchChats', { matchId });
+    const confirmed = window.confirm('Você tem certeza que deseja sair?');
+    if (confirmed) {
+      await signOut(auth);
+      navigation.navigate('Login');
+    }
   };
 
   return (
@@ -79,7 +82,7 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
       <Button title="Perfil" onPress={() => navigation.navigate('Profile')} />
       <Button title="Emparelhamento Aleatório" onPress={() => navigation.navigate('ChatQueue')} />
       <Button title="Logout" onPress={handleLogout} />
-      <Button title="Ir para os Matches" onPress={() => navigation.navigate('MatchList')} /> {/* Alterado para a nova tela de MatchList */}
+      <Button title="Ir para os Matches" onPress={() => navigation.navigate('MatchList')} />
       <BottomNavBar />
     </View>
   );
@@ -101,10 +104,22 @@ const BottomNavBar = () => {
 };
 
 const App: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const auth = getAuth(app);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);  // Atualiza o estado de usuário com a autenticação do Firebase
+    });
+
+    // Limpa o listener quando o componente for desmontado
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <RegistrationProvider> {/* Agora o RegistrationProvider envolve toda a aplicação */}
+    <RegistrationProvider> 
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Login" screenOptions={{ headerShown: false }}>
+        <Stack.Navigator initialRouteName={user ? "Home" : "Login"} screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="EmailLogin" component={EmailLogin} />
           <Stack.Screen name="PhoneLogin" component={PhoneLogin} />
@@ -121,6 +136,7 @@ const App: React.FC = () => {
           <Stack.Screen name="MatchScreen" component={MatchScreen} />
           <Stack.Screen name="MatchChats" component={MatchChat} />
           <Stack.Screen name="MatchList" component={MatchListScreen} />
+          <Stack.Screen name="MatchProfile" component={Profile} />
         </Stack.Navigator>  
       </NavigationContainer>
     </RegistrationProvider> 
