@@ -4,7 +4,7 @@ import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-na
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { getAuth, signOut } from 'firebase/auth';
 import { app } from './src/screens/firebaseConfig';
-import ChatScreen from './src/screens/ChatScreen';
+import ChatScreen from './src/screens/ChatScreen2';
 import ChatQueue from './src/screens/ChatQueue';
 import LoginScreen from './src/screens/LoginScreen';  
 import EmailLogin from './src/screens/EmailLogin';    
