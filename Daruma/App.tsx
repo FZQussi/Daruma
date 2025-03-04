@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import 'react-native-gesture-handler';
-import { View, Text, Button, StyleSheet } from 'react-native';
+
+import { View, Text, Button, StyleSheet, Alert } from 'react-native';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
 import { app } from './src/screens/firebaseConfig';  // Importa a configuração do Firebase
 
@@ -10,10 +11,7 @@ import ChatScreen from './src/screens/ChatScreen';
 import ChatQueue from './src/screens/ChatQueue';
 import LoginScreen from './src/screens/LoginScreen';  
 import EmailLogin from './src/screens/EmailLogin';    
-import PhoneLogin from './src/screens/PhoneLogin';   
-import RegistrationStep1 from './src/screens/RegistrationStep1'; 
-import RegistrationStep2 from './src/screens/RegistrationStep2';
-import RegistrationStep3 from './src/screens/RegistrationStep3'; 
+import PhoneLogin from './src/screens/PhoneLogin';    
 import ProfileScreen from './src/screens/ProfileScreen';
 import MatchScreen from './src/screens/MatchScreen';
 import MatchChat from './src/screens/MatchChat';
@@ -67,13 +65,26 @@ const LikesScreen = () => (
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) => {
   const auth = getAuth(app);
-
+  
   const handleLogout = async () => {
-    const confirmed = window.confirm('Você tem certeza que deseja sair?');
-    if (confirmed) {
-      await signOut(auth);
-      navigation.navigate('Login');
-    }
+    Alert.alert(
+      'Confirmar Logout',
+      'Você tem certeza que deseja sair?',
+      [
+        {
+          text: 'Cancelar',
+          style: 'cancel',
+        },
+        {
+          text: 'Sair',
+          onPress: async () => {
+            await signOut(auth);
+            navigation.navigate('Login');
+          },
+        },
+      ],
+      { cancelable: false }
+    );
   };
 
   return (
@@ -124,9 +135,6 @@ const App: React.FC = () => {
           <Stack.Screen name="EmailLogin" component={EmailLogin} />
           <Stack.Screen name="PhoneLogin" component={PhoneLogin} />
           <Stack.Screen name="Registration" component={Registration} />
-          <Stack.Screen name="RegistrationStep1" component={RegistrationStep1} />
-          <Stack.Screen name="RegistrationStep2" component={RegistrationStep2} />
-          <Stack.Screen name="RegistrationStep3" component={RegistrationStep3} />
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="ChatScreen" component={ChatScreen} />
           <Stack.Screen name="ChatQueue" component={ChatQueue} />
