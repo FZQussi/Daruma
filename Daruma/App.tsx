@@ -39,10 +39,11 @@ export type RootStackParamList = {
   Likes: undefined;
   MatchScreen: undefined;
   MatchChats: { matchId: string };
-  MatchList: undefined;
+  MatchList: undefined; // Verifique se esta chave existe aqui
   MatchProfile: { userId: string };
   EditProfile: undefined;
 };
+
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
