@@ -42,6 +42,7 @@ export type RootStackParamList = {
   MatchList: undefined; // Verifique se esta chave existe aqui
   MatchProfile: { userId: string };
   EditProfile: undefined;
+  ProfileScreen: undefined;
 };
 
 
