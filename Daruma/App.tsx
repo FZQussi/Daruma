@@ -20,6 +20,7 @@ import MatchListScreen from './src/screens/MatchListScreen';
 import { RegistrationProvider } from './src/context/RegistrationContext';
 import Registration from './src/screens/Registration'; 
 import Profile from './src/screens/Profile';
+import EditProfile from './src/screens/EditProfile';
 
 // Definição dos tipos das rotas
 export type RootStackParamList = {
@@ -40,6 +41,7 @@ export type RootStackParamList = {
   MatchChats: { matchId: string };
   MatchList: undefined;
   MatchProfile: { userId: string };
+  EditProfile: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -145,6 +147,7 @@ const App: React.FC = () => {
           <Stack.Screen name="MatchChats" component={MatchChat} />
           <Stack.Screen name="MatchList" component={MatchListScreen} />
           <Stack.Screen name="MatchProfile" component={Profile} />
+          <Stack.Screen name="EditProfile" component={EditProfile} />
         </Stack.Navigator>  
       </NavigationContainer>
     </RegistrationProvider> 

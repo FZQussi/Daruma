@@ -45,6 +45,7 @@
     "react-native-safe-area-context": "^5.2.0",
     "react-native-screens": "^4.8.0",
     "react-native-snap-carousel": "^3.9.1",
+    "react-native-svg": "^15.11.2",
     "react-native-swiper": "^1.6.0",
     "redis": "^4.7.0",
     "socket.io": "^4.8.1",
