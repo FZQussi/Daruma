@@ -16,4 +16,5 @@ export type RootStackParamList = {
     MatchProfile: { userId: string };
     EditProfile: undefined;
     Profile: undefined;
+    Welcome: undefined;
   };

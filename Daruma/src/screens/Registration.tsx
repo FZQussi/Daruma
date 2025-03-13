@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, Image, Alert } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, ScrollView, Image, Alert, ImageBackground, Animated, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -10,6 +10,7 @@ import { useRegistration } from '../context/RegistrationContext';
 import * as Device from 'expo-device';
 import * as Application from 'expo-application';
 import * as Location from 'expo-location';  
+
 
 
 // Função para carregar países
@@ -48,6 +49,34 @@ const Registration: React.FC<any> = ({ navigation }) => {
   const years = Array.from({ length: currentYear - 1920 + 1 }, (_, i) => (currentYear - i).toString());
   const minimumYear = currentYear - 18;
   const [showAlert, setShowAlert] = useState(false);
+  const [focusedInput, setFocusedInput] = useState(null);
+  
+  // Animated value for border color
+  const animatedBorder = useRef(new Animated.Value(0)).current;
+
+  const handleFocus = (inputName) => {
+    setFocusedInput(inputName);
+    Animated.timing(animatedBorder, {
+      toValue: 1, // Darker border when focused
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleBlur = () => {
+    setFocusedInput(null);
+    Animated.timing(animatedBorder, {
+      toValue: 0, // Lighter border when blurred
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  // Interpolating the border color based on animation state
+  const borderColorInterpolation = animatedBorder.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#ccc', '#333'], // Light gray to dark gray
+  });
   
 
   const handleYearSelection = (year: string) => {
@@ -86,6 +115,25 @@ useEffect(() => {
   const [location, setLocation] = useState<any>(null); // Para armazenar localização do usuário
   const [deviceInfo, setDeviceInfo] = useState<any>(null); // Para armazenar informações do dispositivo
   const [DeviceId, setDeviceId] = useState<any>(null);
+  const [focusedPicker, setFocusedPicker] = useState(null);
+
+  const handleFocusPicker = (pickerName) => {
+    setFocusedPicker(pickerName);
+    Animated.timing(animatedBorder, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const handleBlurPicker = () => {
+    setFocusedPicker(null);
+    Animated.timing(animatedBorder, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
   
     // Verificação em tempo real do email
   useEffect(() => {
@@ -315,104 +363,331 @@ const createUser = async () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Etapa 1 */}
-      <Text style={styles.header}>Registro de Usuário</Text>
-      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
-      {emailExists && <Text style={styles.error}>Este email já está em uso.</Text>}
+    <ImageBackground 
+      source={{ uri: 'https://res.cloudinary.com/dped93q3y/image/upload/v1741791078/profile_pics/yhahsqll16casizjoaqi.jpg' }} 
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <ScrollView contentContainerStyle={styles.container}>
 
-      <TextInput style={styles.input} placeholder="Senha" value={password} onChangeText={setPassword} secureTextEntry />
-      <TextInput style={styles.input} placeholder="Confirmar Senha" value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
-      <TextInput style={styles.input} placeholder="Nome" value={firstName} onChangeText={setFirstName} />
-      <TextInput style={styles.input} placeholder="Sobrenome" value={lastName} onChangeText={setLastName} />
-      <TextInput style={styles.input} placeholder="Nome de Usuário" value={username} onChangeText={setUsername} />
-      {usernameExists && <Text style={styles.error}>Este nome de usuário já está em uso.</Text>}
-        <TextInput
-    style={styles.input}
-    placeholder="Bio (Opcional)"
-    value={UserBio}
-    onChangeText={setUserBio}
-  />
+        {/* Card Container */}
+        <View style={styles.cardContainer}>
+        <Text style={styles.header}>Registro de Usuário</Text>
 
-      // Picker para escolher o ano
-<View style={styles.container}>
-  <Text style={styles.label}>Selecione o Ano:</Text>
-  <Picker
-    selectedValue={selectedYear}
-    onValueChange={handleYearSelection}
-    style={styles.picker}
-  >
-    <Picker.Item label="Ano" value="" />
-    {years.map((year, index) => (
-      <Picker.Item key={index} label={year} value={year} />
-    ))}
-  </Picker>
-</View>
-      {/* Substituindo o Picker de País pelo dinâmico */}
-      <Text>Selecione o País</Text>
-      <Picker selectedValue={country} onValueChange={(itemValue) => setCountry(itemValue)} style={styles.picker}>
-        <Picker.Item label="Selecione o País" value="" />
-        <Picker.Item label="Portugal" value="Portugal" />
-        {countries.map((country, index) => (
-          <Picker.Item key={index} label={country.label} value={country.value} />
-          
-          
-        ))}
-      </Picker>
-      
-      <Text>Escolha seu gênero:</Text>
-      <Picker selectedValue={gender} onValueChange={(itemValue) => setGender(itemValue)} style={styles.picker}>
-        <Picker.Item label="Selecione o Gênero" value="" />
-        <Picker.Item label="Masculino" value="male" />
-        <Picker.Item label="Feminino" value="Female" />
-        <Picker.Item label="Outro" value="other" />
-      </Picker>
-
-      <Text>Escolha suas preferências:</Text>
-      <Picker selectedValue={preferences} onValueChange={(itemValue) => setPreferences(itemValue)} style={styles.picker}>
-        <Picker.Item label="Selecione as Preferências" value="" />
-        <Picker.Item label="Mulheres" value="women" />
-        <Picker.Item label="Homens" value="men" />
-        <Picker.Item label="Ambos" value="both" />
-      </Picker>
-
-      {/* Foto de Perfil */}
-      <Text>Foto de Perfil</Text>
-      <Button title="Selecionar Foto de Perfil" onPress={() => pickImage(true)} />
-      {profileImageUri && <Image source={{ uri: profileImageUri }} style={styles.image} />}
-
-      {/* Fotos Adicionais */}
-      <Text>Fotos Adicionais (Máximo 3)</Text>
-      <Button title="Selecionar Foto Adicional" onPress={() => pickImage(false)} />
-      {additionalImagesUri.length > 0 && (
-        <View style={styles.imageContainer}>
-          {additionalImagesUri.map((uri, index) => (
-            <Image key={index} source={{ uri }} style={styles.image} />
+{errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+          {/* Animated Inputs */}
+          {[
+            { placeholder: "Email", value: email, onChangeText: setEmail, name: "email" },
+            { placeholder: "Senha", value: password, onChangeText: setPassword, name: "password", secureTextEntry: true },
+            { placeholder: "Confirmar Senha", value: confirmPassword, onChangeText: setConfirmPassword, name: "confirmPassword", secureTextEntry: true },
+            { placeholder: "Nome", value: firstName, onChangeText: setFirstName, name: "firstName" },
+            { placeholder: "Sobrenome", value: lastName, onChangeText: setLastName, name: "lastName" },
+            { placeholder: "Nome de Usuário", value: username, onChangeText: setUsername, name: "username" },
+            { placeholder: "Bio (Opcional)", value: UserBio, onChangeText: setUserBio, name: "bio" }
+          ].map((field, index) => (
+            <Animated.View key={index} style={[styles.inputContainer, focusedInput === field.name && { borderBottomColor: borderColorInterpolation }]}>
+              <TextInput 
+                style={styles.input} 
+                placeholder={field.placeholder} 
+                value={field.value} 
+                onChangeText={field.onChangeText} 
+                secureTextEntry={field.secureTextEntry}
+                onFocus={() => handleFocus(field.name)} 
+                onBlur={handleBlur} 
+              />
+            </Animated.View>
           ))}
+
+          {/* Animated Picker (Ano) */}
+          
+          <Animated.View style={[styles.inputContainer, focusedPicker === 'year' && { borderBottomColor: borderColorInterpolation }]}>
+            <Picker 
+              selectedValue={selectedYear} 
+              onValueChange={handleYearSelection} 
+              style={styles.picker}
+              onFocus={() => handleFocusPicker('year')} 
+              onBlur={handleBlurPicker}
+            >
+              <Picker.Item label="Ano" value="" />
+              {years.map((year, index) => (
+                <Picker.Item key={index} label={year} value={year} />
+              ))}
+            </Picker>
+          </Animated.View>
+
+          {/* Animated Picker (País) */}
+          
+          <Animated.View style={[styles.inputContainer, focusedPicker === 'country' && { borderBottomColor: borderColorInterpolation }]}>
+            <Picker 
+              selectedValue={country} 
+              onValueChange={(itemValue) => setCountry(itemValue)} 
+              style={styles.picker}
+              onFocus={() => handleFocusPicker('country')} 
+              onBlur={handleBlurPicker}
+            >
+              <Picker.Item label="Selecione o País" value="" />
+              <Picker.Item label="Portugal" value="Portugal" />
+              {countries.map((country, index) => (
+                <Picker.Item key={index} label={country.label} value={country.value} />
+              ))}
+            </Picker>
+          </Animated.View>
+
+          {/* Animated Picker (Gênero) */}
+         
+          <Animated.View style={[styles.inputContainer, focusedPicker === 'gender' && { borderBottomColor: borderColorInterpolation }]}>
+            <Picker 
+              selectedValue={gender} 
+              onValueChange={(itemValue) => setGender(itemValue)} 
+              style={styles.picker}
+              onFocus={() => handleFocusPicker('gender')} 
+              onBlur={handleBlurPicker}
+            >
+              <Picker.Item label="Selecione o Gênero" value="" />
+              <Picker.Item label="Masculino" value="male" />
+              <Picker.Item label="Feminino" value="Female" />
+              <Picker.Item label="Outro" value="other" />
+            </Picker>
+          </Animated.View>
+
+          {/* Animated Picker (Preferências) */}
+          <Animated.View style={[styles.inputContainer, focusedPicker === 'preferences' && { borderBottomColor: borderColorInterpolation }]}>
+            <Picker 
+              selectedValue={preferences} 
+              onValueChange={(itemValue) => setPreferences(itemValue)} 
+              style={styles.picker}
+              onFocus={() => handleFocusPicker('preferences')} 
+              onBlur={handleBlurPicker}
+            >
+              <Picker.Item label="Selecione as Preferências" value="" />
+              <Picker.Item label="Mulheres" value="women" />
+              <Picker.Item label="Homens" value="men" />
+              <Picker.Item label="Ambos" value="both" />
+            </Picker>
+          </Animated.View>
+
+          <Text style={styles.fieldinfo}>Foto de Perfil</Text>
+          {/* Foto de Perfil */}
+          <TouchableOpacity
+  style={styles.profileImageContainer}
+  onPress={() => pickImage(true)}
+>
+  {profileImageUri ? (
+    <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
+  ) : (
+    <View style={styles.profilePlaceholder}>
+      <Text style={styles.placeholderText}>📷</Text> {/* Emoji de câmera */}
+    </View>
+  )}
+</TouchableOpacity>
+
+<Text style={styles.fieldinfo}>Fotos Adicionais (Máximo 3)</Text>
+<View style={styles.imageContainer}>
+  {/* Renderiza as 3 caixas */}
+  {[...Array(3)].map((_, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.additionalImageContainer}
+      onPress={() => pickImage(false, index)} // Passando o índice para saber qual caixa foi clicada
+    >
+      {additionalImagesUri[index] ? (
+        // Se a imagem já foi adicionada, exibe a imagem
+        <Image source={{ uri: additionalImagesUri[index] }} style={styles.additionalImage} />
+      ) : (
+        // Caso contrário, exibe o emoji de adição
+        <View style={styles.additionalImagePlaceholder}>
+          <Text style={styles.placeholderText}>➕</Text>  {/* Emoji de adição */}
         </View>
       )}
+    </TouchableOpacity>
+  ))}
+</View>
+<TouchableOpacity 
+  style={[styles.button, loading && styles.buttonDisabled]} 
+  onPress={handleNextStep} 
+  disabled={loading}
+>
+  <Text style={styles.buttonText}>
+    {loading ? 'Carregando...' : 'Finalizar Registro'}
+  </Text>
+</TouchableOpacity>    </View>
 
-      {/* Botão de envio */}
-      <Button title={loading ? 'Carregando...' : 'Finalizar Registro'} onPress={handleNextStep} disabled={loading} />
-    </ScrollView>
+        {/* Botão de envio */}
+       </ScrollView>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center' },
-  input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, paddingHorizontal: 10 },
-  picker: { height: 50, width: '100%', marginBottom: 20, fontSize: 16, backgroundColor: '#f4f4f4' },
-  error: { color: 'red', marginBottom: 10 },
-  image: { width: 100, height: 100, marginBottom: 10, borderRadius: 10 },
-  imageContainer: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 10 },
+  button: {
+    borderRadius: 10,          // This creates rounded corners
+    borderWidth: 1,            // Thin border
+    borderColor: 'blue',       // Blue color for the border
+    backgroundColor: 'white',  // White background
+    paddingVertical: 10,       // Vertical padding for the button
+    paddingHorizontal: 20,     // Horizontal padding for the button
+    alignItems: 'center',      // Centering the text horizontally
+    justifyContent: 'center',  // Centering the text vertically
+  },
+  buttonDisabled: {
+    backgroundColor: '#f0f0f0', // Lighter background color when disabled
+    borderColor: '#ccc',         // Lighter border color when disabled
+  },
+  buttonText: {
+    color: 'blue',             // Blue text color
+    fontSize: 16,              // Font size for the button text
+    fontWeight: 'bold',        // Bold text
+  },
+  fieldinfo: {
+    textAlign: 'center',
+    alignContent: 'center',   // Aligns content to the center
+    fontWeight: 'bold',       // Makes text bold
+    fontSize: 18,             // Sets the font size to 12
+},
+  profileImageContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+    alignSelf: 'center',  // Centraliza a imagem de perfil
+  },
+
+  profileImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+
+  profilePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#eee',
+  },
+
+  placeholderText: {
+    fontSize: 40,
+    color: '#555',
+  },
+
+  additionalImageContainer: {
+    width: 100,  // Definido para garantir o tamanho das imagens
+    height: 100,
+    marginRight: 10,
+    marginBottom: 10,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    backgroundColor: '#f0f0f0',
+  },
+
+  additionalImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+  },
+
+  additionalImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#eee',
+  },
+
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+    justifyContent: 'center',
+  },
+
+  container: {
+    flexGrow: 1,
+    padding: 20,
+    justifyContent: 'flex-start',  // Alinhar conteúdo no topo
+    alignItems: 'flex-start',  // Alinhar conteúdo à esquerda
+  },
+
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'black',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+
+  cardContainer: {
+    width: '95%',  // Largura aumentada do container
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    alignSelf: 'center',
+    marginTop: 50,
+  },
+
+  inputContainer: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#ccc',
+    marginBottom: 15,
+  },
+
+  input: {
+    height: 40,
+    paddingHorizontal: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+
+  picker: {
+    height: 50,
+    width: '100%',
+    marginBottom: 1,
+    fontSize: 16,
+    borderRadius: 10,
+  },
+
+  error: {
+    color: 'red',
+    marginBottom: 10,
+  },
+
+  image: {
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+    borderRadius: 10,
+  },
+
+  imageContainer: {
+    flexDirection: 'row',  // Garantir que as imagens fiquem na linha
+    justifyContent: 'flex-start',  // Alinhar à esquerda
+    marginBottom: 10,
+    flexWrap: 'nowrap',  // Impede que as imagens vão para a próxima linha
+  },
+
   label: {
     fontSize: 16,
     marginBottom: 5,
     fontWeight: 'bold',
   },
 });
+
+
 
 export default Registration;
 
