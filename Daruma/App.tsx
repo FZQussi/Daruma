@@ -21,6 +21,7 @@ import { RegistrationProvider } from './src/context/RegistrationContext';
 import Registration from './src/screens/Registration'; 
 import Profile from './src/screens/Profile';
 import EditProfile from './src/screens/EditProfile';
+import LikeScreen from './src/screens/LikeScreen';
 
 // Definição dos tipos das rotas
 export type RootStackParamList = {
@@ -43,6 +44,7 @@ export type RootStackParamList = {
   MatchProfile: { userId: string };
   EditProfile: undefined;
   ProfileScreen: undefined;
+  LikeScreen: undefined;
 };
 
 
@@ -112,7 +114,7 @@ const BottomNavBar = () => {
       <Button title="Conversas" onPress={() => navigation.navigate('MatchChats', { matchId: 'exemploMatchId' })} />
       <Button title="Match" onPress={() => navigation.navigate('MatchScreen')} />
       <Button title="RandChat" onPress={() => navigation.navigate('ChatQueue')} />
-      <Button title="Gostos" onPress={() => navigation.navigate('Likes')} />
+      <Button title="Gostos" onPress={() => navigation.navigate('LikeScreen')} />
       <Button title="Perfil" onPress={() => navigation.navigate('Profile')} />
     </View>
   );
@@ -150,6 +152,7 @@ const App: React.FC = () => {
           <Stack.Screen name="MatchList" component={MatchListScreen} />
           <Stack.Screen name="MatchProfile" component={Profile} />
           <Stack.Screen name="EditProfile" component={EditProfile} />
+          <Stack.Screen name="LikeScreen" component={LikeScreen} />
         </Stack.Navigator>  
       </NavigationContainer>
     </RegistrationProvider> 

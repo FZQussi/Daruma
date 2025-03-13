@@ -291,7 +291,7 @@ const removeMatchAndUpdateUsers = async (match: Match, chatRoom: any) => {
                     <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('MatchScreen')}>
                       <Text style={styles.navText}>Swipe</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Likes')}>
+                    <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('LikeScreen')}>
                       <Text style={styles.navText}>Likes</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Profile')}>

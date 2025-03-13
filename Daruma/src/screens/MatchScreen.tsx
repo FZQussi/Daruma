@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, Text, StyleSheet, Button, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Image, Text, StyleSheet, Button, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
 import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { app } from './firebaseConfig';
@@ -8,6 +8,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { query, where } from 'firebase/firestore';
 import Svg, { Path } from 'react-native-svg';
+import Swiper from 'react-native-swiper';
 
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -27,12 +28,26 @@ interface Match {
   createdAt: any;
 }
 
+
 const MatchScreen = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const currentUser = auth.currentUser;
+
+    const handleSwipeLeft = async () => {
+    if (!profile || !currentUser) return;
+    await updateDoc(doc(db, 'users', currentUser.uid), { dislikes: arrayUnion(profile.id) });
+    getNextProfile();
+  };
+
+  const handleSwipeRight = async () => {
+    if (!profile || !currentUser) return;
+    await updateDoc(doc(db, 'users', currentUser.uid), { likes: arrayUnion(profile.id) });
+    getNextProfile();
+  };
+
 
   const fetchProfiles = async () => {
     if (!currentUser) return;
@@ -186,99 +201,254 @@ const MatchScreen = () => {
     }
   };
 
+  const calculateAge = (birthDate: string) => {
+    const birth = new Date(birthDate);
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDifference = today.getMonth() - birth.getMonth();
+    if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+  
   return (
-    <View style={styles.container}>
-      {loading ? (
-        <Text>A carregar perfis...</Text>
-      ) : profiles.length === 0 ? (
-        <Text>Não existem perfis disponíveis. Atualizando...</Text>  // Se estiver vazio, vamos atualizar
-      ) : profile === null ? (
-        <Text>Não há mais perfis disponíveis. Atualizando...</Text>  // Recarrega os perfis
-      ) : (
-        <ScrollView contentContainerStyle={styles.profileContainer}>
-          {profile && (
-            <>
-              <Image source={{ uri: profile.profilePicture }} style={styles.image} />
-              <Text style={styles.name}>{profile.firstName} {profile.lastName}</Text>
+    <ImageBackground 
+      source={{ uri: 'https://res.cloudinary.com/dped93q3y/image/upload/v1741791078/profile_pics/yhahsqll16casizjoaqi.jpg' }} 
+      style={styles.backgroundImage}
+    >
+      <View style={styles.container}>
+        {/* Barra no topo (fixa) */}
+        <View style={styles.headerBar}>
+          <Text style={styles.headerText}>Match Screen</Text>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity style={styles.headerButton} onPress={() => console.log('Botão 1 clicado')}>
+              <Text style={styles.buttonText}>Opção 1</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerButton} onPress={() => console.log('Botão 2 clicado')}>
+              <Text style={styles.buttonText}>Opção 2</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* ScrollView para tornar o perfil rolável */}
+        <ScrollView contentContainerStyle={styles.profileCardContainer}>
+          {loading ? (
+            <Text style={styles.loadingText}>A carregar perfis...</Text>
+          ) : profiles.length === 0 ? (
+            <Text style={styles.loadingText}>Não existem perfis disponíveis.</Text>
+          ) : profile === null ? (
+            <Text style={styles.loadingText}>Não há mais perfis disponíveis.</Text>
+          ) : (
+            <View style={styles.profileCard}>
+              
+              <Image source={{ uri: profile.profilePicture }} style={styles.profileImage} />
+              <Text style={styles.profileName}>
+                {profile.firstName} {profile.lastName}, {calculateAge(profile.birthDate)}
+              </Text>
+              <Text style={styles.profileBio}>{profile.UserBio}</Text>
+
+              {/* Exibir imagens adicionais se existirem */}
               {profile.additionalPictures.length > 0 && (
-                <View style={styles.additionalImagesContainer}>
-                  {profile.additionalPictures.map((uri, index) => (
-                    <Image key={index} source={{ uri }} style={styles.additionalImage} />
-                  ))}
+                <View style={styles.profileCard}>
+                  <Image
+                    key={0}
+                    source={{ uri: profile.additionalPictures[0] }}
+                    style={styles.additionalImage}
+                  />
                 </View>
               )}
-              <View style={styles.buttonContainer}>
-                <Button title="❌ Dislike" onPress={handleDislike} color="red" />
-                <Button title="❤️ Like" onPress={handleLike} color="green" />
-              </View>
-              <Button title="Próximo" onPress={getNextProfile} />
-              <Button title="Ver Meus Matches" onPress={() => navigation.navigate('MatchList')} />
-            </>
+              {profile.additionalPictures.length > 1 && (
+                <View style={styles.additionalImagesContainer}>
+                  <Image
+                    key={1}
+                    source={{ uri: profile.additionalPictures[1] }}
+                    style={styles.additionalImage}
+                  />
+                </View>
+              )}
+              {profile.additionalPictures.length > 2 && (
+                <View style={styles.additionalImagesContainer}>
+                  <Image
+                    key={2}
+                    source={{ uri: profile.additionalPictures[2] }}
+                    style={styles.additionalImage}
+                  />
+                </View>
+              )}
+            </View>
           )}
         </ScrollView>
-      )}
-      <View style={styles.navbar}>
-        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('MatchList')}>
-          <Text style={styles.navText}>Conversas</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('ChatQueue')}>
-          <Text style={styles.navText}>RandChat</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('MatchScreen')}>
-          <Text style={styles.navText}>Swipe</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Likes')}>
-          <Text style={styles.navText}>Likes</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Profile')}>
-          <Text style={styles.navText}>Perfil</Text>
-        </TouchableOpacity>
-        
+
+        {/* Botões Like e Dislike */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={[styles.actionButton, styles.dislikeButton]} onPress={handleDislike}>
+            <Text style={styles.buttonText}>❌</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.actionButton, styles.likeButton]} onPress={handleLike}>
+            <Text style={styles.buttonText}>❤️</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Navbar fixa no fundo */}
+        <View style={styles.navbar}>
+          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('MatchList')}>
+            <Text style={styles.navText}>Conversas</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('ChatQueue')}>
+            <Text style={styles.navText}>RandChat</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('MatchScreen')}>
+            <Text style={styles.navText}>Swipe</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('LikeScreen')}>
+            <Text style={styles.navText}>Likes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('Profile')}>
+            <Text style={styles.navText}>Perfil</Text>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f8f8f8',
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
-  profileContainer: {
-    alignItems: 'center',
-    padding: 20,
-  },
-  image: {
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    marginBottom: 20,
-  },
-  name: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  additionalImagesContainer: {
+  headerBar: {
+    position: 'absolute',
+  
+    width: '100%',
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginTop: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 50,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    zIndex: 1000,
+    backgroundColor: 'white',
   },
-  additionalImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
-    margin: 5,
+  headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'black',
   },
-  buttonContainer: {
+  headerButtons: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 10,
-    marginBottom: 10,
+  },
+  headerButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  profileCardContainer: {
+    paddingTop: 100, 
+    paddingBottom: 150, // Padding extra para a navbar fixa
+    alignItems: 'center',
+  },
+  profileCard: {
+    width: '95%',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 0,
+    alignItems: 'center',
+    elevation: 5,  // Sombra externa
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    marginTop: 50,
+  },
+  profileCardInner: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+    padding: 15,  // Espaço interno
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',  // A cor interna
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,  // Sombra interna mais forte
+    shadowRadius: 8,  // Maior raio para um efeito mais forte
+    borderColor: '#ccc',
+    borderWidth: 1,  // Para simular uma borda
+    overflow: 'hidden',  // Esconde qualquer coisa fora do contêiner
+  },
+  profileImage: {
+    width: '100%',
+    height: 500,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginBottom: 15,
+  },
+  profileName: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  profileBio: {
+    fontSize: 16,
+    color: '#555',
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 15,
+  },
+  additionalImagesContainer: {
+    marginTop: 100,
+    marginBottom: 100,
+  },
+  additionalImage: {
+    width: 391,
+    height: 500,
+  },
+  buttonContainer: {
+    position: 'absolute',
+    bottom: 100,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    gap: 170,
+  },
+  actionButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  dislikeButton: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 50,
+    elevation: 5,
+  },
+  likeButton: {
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 50,
+    elevation: 5,
   },
   navbar: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
@@ -286,9 +456,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderTopWidth: 1,
     borderColor: '#ddd',
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
   },
   navButton: {
     padding: 10,
@@ -300,5 +467,3 @@ const styles = StyleSheet.create({
 });
 
 export default MatchScreen;
-
-

@@ -17,4 +17,5 @@ export type RootStackParamList = {
     EditProfile: undefined;
     Profile: undefined;
     Welcome: undefined;
+    LikeScreen: undefined;
   };
