@@ -1,111 +1,140 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ImageBackground, Image, Alert } from 'react-native';
+import { TextInput, Button, Text } from 'react-native-paper';
 import { signInWithEmailAndPassword, getAuth, sendPasswordResetEmail } from 'firebase/auth';
-import Animated, { Easing, useSharedValue, withSpring, withDelay } from 'react-native-reanimated';
+import { useNavigation } from '@react-navigation/native';
 
-const EmailLogin: React.FC<any> = ({ navigation }) => {
+const EmailLogin: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-
-  // Animação para o botão
-  const scale = useSharedValue(1);
+  const navigation = useNavigation();
 
   const handleEmailLogin = async () => {
     const auth = getAuth();
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // Navega para a Home e limpa o histórico de navegação
-      navigation.reset({
-        index: 0,  // Define a tela inicial como "Home"
-        routes: [{ name: 'MatchScreen' }],  // Define "Home" como a única tela no stack
-      });
+      navigation.reset({ index: 0, routes: [{ name: 'MatchScreen' }] });
     } catch (error: any) {
       setErrorMessage(error.message);
     }
   };
 
-  // Função para lidar com a recuperação de senha
   const handlePasswordReset = async () => {
     const auth = getAuth();
     if (!email) {
       Alert.alert('Erro', 'Por favor, insira o seu email.');
       return;
     }
-
     try {
       await sendPasswordResetEmail(auth, email);
-      Alert.alert('Sucesso', 'Verifique a sua caixa de entrada para redefinir a sua palavra-passe.');
+      Alert.alert('Sucesso', 'Verifique sua caixa de entrada para redefinir sua senha.');
     } catch (error: any) {
       setErrorMessage(error.message);
     }
   };
 
-  // Função para animar o botão
-  const animateButton = () => {
-    scale.value = withSpring(1.1, { damping: 2, stiffness: 100 }); // Enfraquece o botão
-
-    // Após a animação, volta ao estado original
-    setTimeout(() => {
-      scale.value = withSpring(1, { damping: 2, stiffness: 100 });
-    }, 100);
-  };
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Login com Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Palavra-passe"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+    <ImageBackground
+      source={{ uri: 'https://res.cloudinary.com/dped93q3y/image/upload/v1741791078/profile_pics/yhahsqll16casizjoaqi.jpg' }}
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay}>
+        <Image
+          source={{ uri: 'https://res.cloudinary.com/dped93q3y/image/upload/v1741812581/profile_pics/xwskrtysmko0rdxvgdup.png' }}
+          style={styles.logo}
+        />
 
-      {/* Botão com animação */}
-      <Animated.View style={{ transform: [{ scale: scale.value }] }}>
-        <TouchableOpacity onPress={() => { handleEmailLogin(); animateButton(); }}>
-          <View style={styles.button}>
-            <Text style={styles.buttonText}>Entrar</Text>
-          </View>
-        </TouchableOpacity>
-      </Animated.View>
+        <TextInput
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          mode="flat"
+          style={styles.input}
+          theme={{ colors: { primary: 'white', text: 'white', placeholder: 'white' } }}
+          textColor='white'
+        />
 
-      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-      
-      <Text style={styles.forgotPassword} onPress={handlePasswordReset}>
-        Esqueci-me da minha palavra-passe
-      </Text>
-    </View>
+        <TextInput
+          label="Palavra-passe"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          mode="flat"
+          style={styles.input}
+          theme={{ colors: { primary: 'white', text: 'white', placeholder: 'white' } }}
+          textColor='white'
+        />
+
+        {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+
+        <Button
+          mode="outlined"
+          onPress={handleEmailLogin}
+          style={styles.button}
+          labelStyle={styles.buttonText}
+          rippleColor="rgba(173, 216, 230, 0.5)"
+        >
+          Entrar
+        </Button>
+
+        <Text style={styles.forgotPassword} onPress={handlePasswordReset}>
+          Esqueci-me da minha palavra-passe
+        </Text>
+      </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, justifyContent: 'center' },
-  header: { fontSize: 24, fontWeight: 'bold', marginBottom: 20 },
-  input: { height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, paddingHorizontal: 10 },
-  error: { color: 'red', marginTop: 10 },
-  forgotPassword: { color: 'blue', marginTop: 15, textAlign: 'center' },
-  button: {
-    backgroundColor: '#4CAF50', // Cor de fundo do botão
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 5,
+  backgroundImage: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
+  overlay: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  logo: {
+    width: 300,
+    height: 300,
+    marginBottom: 30,
+    resizeMode: 'contain',
+  },
+  input: {
+    width: '90%',
+    marginBottom: 15,
+    backgroundColor: 'transparent',
+  },
+  button: {
+    marginVertical: 10,
+    width: '90%',
+    borderColor: '#fff',
+    borderWidth: 2,
+    backgroundColor: 'transparent',
+    borderRadius: 25,
+  },
   buttonText: {
-    color: 'white',
+    color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+  },
+  forgotPassword: {
+    color: 'white',
+    marginTop: 15,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  error: {
+    color: 'red',
+    marginBottom: 10,
   },
 });
 
 export default EmailLogin;
-  

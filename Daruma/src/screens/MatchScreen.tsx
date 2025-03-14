@@ -213,10 +213,6 @@ const MatchScreen = () => {
   };
   
   return (
-    <ImageBackground 
-      source={{ uri: 'https://res.cloudinary.com/dped93q3y/image/upload/v1741791078/profile_pics/yhahsqll16casizjoaqi.jpg' }} 
-      style={styles.backgroundImage}
-    >
       <View style={styles.container}>
         {/* Barra no topo (fixa) */}
         <View style={styles.headerBar}>
@@ -250,7 +246,7 @@ const MatchScreen = () => {
 
               {/* Exibir imagens adicionais se existirem */}
               {profile.additionalPictures.length > 0 && (
-                <View style={styles.profileCard}>
+                <View style={styles.additionalImagesContainer}>
                   <Image
                     key={0}
                     source={{ uri: profile.additionalPictures[0] }}
@@ -309,18 +305,14 @@ const MatchScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </ImageBackground>
+    
   );
 };
 
 const styles = StyleSheet.create({
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
   },
   headerBar: {
     position: 'absolute',
@@ -369,28 +361,25 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 20,
     padding: 0,
+    paddingBottom: 100,
     alignItems: 'center',
-    elevation: 5,  // Sombra externa
+    elevation: 5,  // Mantém a sombra no Android
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: -1 }, // Sombra apenas no topo e laterais
     shadowOpacity: 0.2,
     shadowRadius: 5,
     marginTop: 50,
   },
+  
+  
   profileCardInner: {
     width: '100%',
     height: '100%',
     borderRadius: 20,
-    padding: 15,  // Espaço interno
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',  // A cor interna
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,  // Sombra interna mais forte
-    shadowRadius: 8,  // Maior raio para um efeito mais forte
-    borderColor: '#ccc',
-    borderWidth: 1,  // Para simular uma borda
-    overflow: 'hidden',  // Esconde qualquer coisa fora do contêiner
-  },
+    padding: 15,  
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',  
+    overflow: 'hidden',  
+  },  
   profileImage: {
     width: '100%',
     height: 500,
@@ -411,8 +400,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   additionalImagesContainer: {
-    marginTop: 100,
-    marginBottom: 100,
+    marginTop: 0,
+    marginBottom: 0,
   },
   additionalImage: {
     width: 391,
@@ -432,6 +421,13 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1 ,
+    elevation: 5,  // Mantém a sombra no Android
+    shadowColor: '#000',
+    shadowOffset: { width: 5, height: 0}, // Sombra apenas no topo e laterais
+    shadowOpacity: 0.6,
+    shadowRadius: 5,
+    
   },
   dislikeButton: {
     backgroundColor: 'white',

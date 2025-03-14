@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import 'react-native-gesture-handler';
-
-import { View, Text, Button, StyleSheet, Alert } from 'react-native';
+import { PaperProvider, Button } from 'react-native-paper';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
 import { app } from './src/screens/firebaseConfig';  // Importa a configuração do Firebase
 
@@ -28,9 +28,6 @@ export type RootStackParamList = {
   Login: undefined;
   EmailLogin: undefined;
   PhoneLogin: undefined;
-  RegistrationStep1: undefined;
-  RegistrationStep2: undefined;
-  RegistrationStep3: undefined;
   Registration: undefined;
   Home: undefined;
   ChatScreen: undefined;
@@ -40,13 +37,12 @@ export type RootStackParamList = {
   Likes: undefined;
   MatchScreen: undefined;
   MatchChats: { matchId: string };
-  MatchList: undefined; // Verifique se esta chave existe aqui
+  MatchList: undefined;
   MatchProfile: { userId: string };
   EditProfile: undefined;
   ProfileScreen: undefined;
   LikeScreen: undefined;
 };
-
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -96,10 +92,10 @@ const HomeScreen = ({ navigation }: { navigation: HomeScreenNavigationProp }) =>
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Bem-vindo à App!</Text>
-      <Button title="Perfil" onPress={() => navigation.navigate('Profile')} />
-      <Button title="Emparelhamento Aleatório" onPress={() => navigation.navigate('ChatQueue')} />
-      <Button title="Logout" onPress={handleLogout} />
-      <Button title="Ir para os Matches" onPress={() => navigation.navigate('MatchList')} />
+      <Button mode="contained" onPress={() => navigation.navigate('Profile')}>Perfil</Button>
+      <Button mode="contained" onPress={() => navigation.navigate('ChatQueue')}>Emparelhamento Aleatório</Button>
+      <Button mode="contained" onPress={handleLogout}>Logout</Button>
+      <Button mode="contained" onPress={() => navigation.navigate('MatchList')}>Ir para os Matches</Button>
       <BottomNavBar />
     </View>
   );
@@ -111,11 +107,11 @@ const BottomNavBar = () => {
 
   return (
     <View style={styles.navBar}>
-      <Button title="Conversas" onPress={() => navigation.navigate('MatchChats', { matchId: 'exemploMatchId' })} />
-      <Button title="Match" onPress={() => navigation.navigate('MatchScreen')} />
-      <Button title="RandChat" onPress={() => navigation.navigate('ChatQueue')} />
-      <Button title="Gostos" onPress={() => navigation.navigate('LikeScreen')} />
-      <Button title="Perfil" onPress={() => navigation.navigate('Profile')} />
+      <Button mode="text" onPress={() => navigation.navigate('MatchChats', { matchId: 'exemploMatchId' })}>Conversas</Button>
+      <Button mode="text" onPress={() => navigation.navigate('MatchScreen')}>Match</Button>
+      <Button mode="text" onPress={() => navigation.navigate('ChatQueue')}>RandChat</Button>
+      <Button mode="text" onPress={() => navigation.navigate('LikeScreen')}>Gostos</Button>
+      <Button mode="text" onPress={() => navigation.navigate('Profile')}>Perfil</Button>
     </View>
   );
 };
@@ -129,33 +125,34 @@ const App: React.FC = () => {
       setUser(user);  // Atualiza o estado de usuário com a autenticação do Firebase
     });
 
-    // Limpa o listener quando o componente for desmontado
     return () => unsubscribe();
   }, []);
 
   return (
-    <RegistrationProvider> 
-      <NavigationContainer>
-        <Stack.Navigator initialRouteName={user ? "Home" : "Login"} screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="EmailLogin" component={EmailLogin} />
-          <Stack.Screen name="PhoneLogin" component={PhoneLogin} />
-          <Stack.Screen name="Registration" component={Registration} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-          <Stack.Screen name="ChatScreen" component={ChatScreen} />
-          <Stack.Screen name="ChatQueue" component={ChatQueue} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
-          <Stack.Screen name="Encounters" component={EncountersScreen} />
-          <Stack.Screen name="Likes" component={LikesScreen} />
-          <Stack.Screen name="MatchScreen" component={MatchScreen} />
-          <Stack.Screen name="MatchChats" component={MatchChat} />
-          <Stack.Screen name="MatchList" component={MatchListScreen} />
-          <Stack.Screen name="MatchProfile" component={Profile} />
-          <Stack.Screen name="EditProfile" component={EditProfile} />
-          <Stack.Screen name="LikeScreen" component={LikeScreen} />
-        </Stack.Navigator>  
-      </NavigationContainer>
-    </RegistrationProvider> 
+    <PaperProvider> {/* Envolvendo todo o app com PaperProvider */}
+      <RegistrationProvider> 
+        <NavigationContainer>
+          <Stack.Navigator initialRouteName={user ? "Home" : "Login"} screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="EmailLogin" component={EmailLogin} />
+            <Stack.Screen name="PhoneLogin" component={PhoneLogin} />
+            <Stack.Screen name="Registration" component={Registration} />
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="ChatScreen" component={ChatScreen} />
+            <Stack.Screen name="ChatQueue" component={ChatQueue} />
+            <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="Encounters" component={EncountersScreen} />
+            <Stack.Screen name="Likes" component={LikesScreen} />
+            <Stack.Screen name="MatchScreen" component={MatchScreen} />
+            <Stack.Screen name="MatchChats" component={MatchChat} />
+            <Stack.Screen name="MatchList" component={MatchListScreen} />
+            <Stack.Screen name="MatchProfile" component={Profile} />
+            <Stack.Screen name="EditProfile" component={EditProfile} />
+            <Stack.Screen name="LikeScreen" component={LikeScreen} />
+          </Stack.Navigator>  
+        </NavigationContainer>
+      </RegistrationProvider>
+    </PaperProvider> 
   );
 };
 

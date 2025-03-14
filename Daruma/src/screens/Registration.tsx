@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, ScrollView, Image, Alert, ImageBackground, Animated, TouchableOpacity } from 'react-native';
+import { View,StyleSheet, ScrollView, Image, Alert, ImageBackground, Animated, TouchableOpacity } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -10,7 +10,8 @@ import { useRegistration } from '../context/RegistrationContext';
 import * as Device from 'expo-device';
 import * as Application from 'expo-application';
 import * as Location from 'expo-location';  
-
+import { TextInput, Button, Text } from 'react-native-paper';
+import Svg, { Path } from 'react-native-svg';
 
 
 // Função para carregar países
@@ -54,22 +55,12 @@ const Registration: React.FC<any> = ({ navigation }) => {
   // Animated value for border color
   const animatedBorder = useRef(new Animated.Value(0)).current;
 
-  const handleFocus = (inputName) => {
-    setFocusedInput(inputName);
-    Animated.timing(animatedBorder, {
-      toValue: 1, // Darker border when focused
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
+  const handleFocus = (inputName: string) => {
+    setFocusedInput(inputName); // Quando o campo recebe o foco, atualiza o estado
   };
-
+  
   const handleBlur = () => {
-    setFocusedInput(null);
-    Animated.timing(animatedBorder, {
-      toValue: 0, // Lighter border when blurred
-      duration: 300,
-      useNativeDriver: false,
-    }).start();
+    setFocusedInput(null); // Remove o foco quando o campo perde o foco
   };
 
   // Interpolating the border color based on animation state
@@ -372,31 +363,44 @@ const createUser = async () => {
 
         {/* Card Container */}
         <View style={styles.cardContainer}>
-        <Text style={styles.header}>Registro de Usuário</Text>
+        <Text style={styles.header}>Registo de Urilizador</Text>
 
-{errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-          {/* Animated Inputs */}
-          {[
-            { placeholder: "Email", value: email, onChangeText: setEmail, name: "email" },
-            { placeholder: "Senha", value: password, onChangeText: setPassword, name: "password", secureTextEntry: true },
-            { placeholder: "Confirmar Senha", value: confirmPassword, onChangeText: setConfirmPassword, name: "confirmPassword", secureTextEntry: true },
-            { placeholder: "Nome", value: firstName, onChangeText: setFirstName, name: "firstName" },
-            { placeholder: "Sobrenome", value: lastName, onChangeText: setLastName, name: "lastName" },
-            { placeholder: "Nome de Usuário", value: username, onChangeText: setUsername, name: "username" },
-            { placeholder: "Bio (Opcional)", value: UserBio, onChangeText: setUserBio, name: "bio" }
-          ].map((field, index) => (
-            <Animated.View key={index} style={[styles.inputContainer, focusedInput === field.name && { borderBottomColor: borderColorInterpolation }]}>
-              <TextInput 
-                style={styles.input} 
-                placeholder={field.placeholder} 
-                value={field.value} 
-                onChangeText={field.onChangeText} 
-                secureTextEntry={field.secureTextEntry}
-                onFocus={() => handleFocus(field.name)} 
-                onBlur={handleBlur} 
-              />
-            </Animated.View>
-          ))}
+        {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+{/* Animated Inputs */}
+{[
+  { placeholder: "Email", value: email, onChangeText: setEmail, name: "email" },
+  { placeholder: "Palavra-Passe", value: password, onChangeText: setPassword, name: "password", secureTextEntry: true },
+  { placeholder: "Confirmar Palavra-Passe", value: confirmPassword, onChangeText: setConfirmPassword, name: "confirmPassword", secureTextEntry: true },
+  { placeholder: "Nome", value: firstName, onChangeText: setFirstName, name: "firstName" },
+  { placeholder: "Apelido", value: lastName, onChangeText: setLastName, name: "lastName" },
+  { placeholder: "Nome de Utilizador", value: username, onChangeText: setUsername, name: "username" },
+  { placeholder: "Bio (Opcional)", value: UserBio, onChangeText: setUserBio, name: "bio" }
+].map((field, index) => (
+  <Animated.View
+    key={index}
+    style={[
+      styles.inputContainer,
+      focusedInput === field.name && { borderBottomColor: 'black' }, // Linha preta ao focar
+    ]}
+  >
+    <TextInput
+      style={styles.input}
+      placeholder={field.placeholder}
+      value={field.value}
+      onChangeText={field.onChangeText}
+      secureTextEntry={field.secureTextEntry}
+      onFocus={() => handleFocus(field.name)} 
+      onBlur={handleBlur} 
+      // Impede o foco padrão de alterar a borda
+      autoCorrect={false}
+      autoCapitalize="none"
+      keyboardType="default"
+      placeholderTextColor="#777" // Cor do texto do placeholder
+      selectionColor= "black"
+      activeUnderlineColor="black"
+    />
+  </Animated.View>
+))}
 
           {/* Animated Picker (Ano) */}
           
@@ -476,7 +480,21 @@ const createUser = async () => {
     <Image source={{ uri: profileImageUri }} style={styles.profileImage} />
   ) : (
     <View style={styles.profilePlaceholder}>
-      <Text style={styles.placeholderText}>📷</Text> {/* Emoji de câmera */}
+      <Svg viewBox="0 0 24 24" fill="none" width={70} height={70}>
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M6.75 6.5C6.75 3.6005 9.1005 1.25 12 1.25C14.8995 1.25 17.25 3.6005 17.25 6.5C17.25 9.3995 14.8995 11.75 12 11.75C9.1005 11.75 6.75 9.3995 6.75 6.5Z"
+      fill="#000000"
+    />
+    <Path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M4.25 18.5714C4.25 15.6325 6.63249 13.25 9.57143 13.25H14.4286C17.3675 13.25 19.75 15.6325 19.75 18.5714C19.75 20.8792 17.8792 22.75 15.5714 22.75H8.42857C6.12081 22.75 4.25 20.8792 4.25 18.5714Z"
+      fill="#000000"
+    />
+  </Svg>
+      
     </View>
   )}
 </TouchableOpacity>
@@ -496,21 +514,19 @@ const createUser = async () => {
       ) : (
         // Caso contrário, exibe o emoji de adição
         <View style={styles.additionalImagePlaceholder}>
-          <Text style={styles.placeholderText}>➕</Text>  {/* Emoji de adição */}
+          <Text style={styles.placeholderText}>➕</Text> 
+           {/* Emoji de adição */}
         </View>
       )}
     </TouchableOpacity>
   ))}
 </View>
-<TouchableOpacity 
-  style={[styles.button, loading && styles.buttonDisabled]} 
-  onPress={handleNextStep} 
-  disabled={loading}
->
-  <Text style={styles.buttonText}>
+<Button mode="elevated" onPress={handleNextStep} >
+<Text style={styles.buttonText}>
     {loading ? 'Carregando...' : 'Finalizar Registro'}
   </Text>
-</TouchableOpacity>    </View>
+  </Button>
+  </View>
 
         {/* Botão de envio */}
        </ScrollView>
@@ -534,7 +550,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',         // Lighter border color when disabled
   },
   buttonText: {
-    color: 'blue',             // Blue text color
+    color: 'black',             // Blue text color
     fontSize: 16,              // Font size for the button text
     fontWeight: 'bold',        // Bold text
   },
@@ -607,8 +623,8 @@ const styles = StyleSheet.create({
 
   backgroundImage: {
     flex: 1,
-    resizeMode: 'cover',
     justifyContent: 'center',
+    alignItems: 'center',
   },
 
   container: {
@@ -641,16 +657,19 @@ const styles = StyleSheet.create({
   },
 
   inputContainer: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#ccc',
-    marginBottom: 15,
+    backgroundColor: 'transparent',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'black', // Cor padrão da linha inferior (borda)
   },
-
   input: {
-    height: 40,
-    paddingHorizontal: 10,
+    height: 50,
     fontSize: 16,
-    color: '#333',
+    color: '#333', // Cor do texto
+    paddingLeft: 10,
+    paddingRight: 10,
+    backgroundColor: 'transparent', // Fundo transparente
+    
   },
 
   picker: {
@@ -690,4 +709,3 @@ const styles = StyleSheet.create({
 
 
 export default Registration;
-
