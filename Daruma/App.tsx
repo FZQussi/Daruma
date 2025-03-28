@@ -132,7 +132,7 @@ const App: React.FC = () => {
     <PaperProvider> {/* Envolvendo todo o app com PaperProvider */}
       <RegistrationProvider> 
         <NavigationContainer>
-          <Stack.Navigator initialRouteName={user ? "Home" : "Login"} screenOptions={{ headerShown: false }}>
+          <Stack.Navigator initialRouteName={user ? "Home" : "Login"} screenOptions={{ headerShown: false, animation: 'none' }}>
             <Stack.Screen name="Login" component={LoginScreen} />
             <Stack.Screen name="EmailLogin" component={EmailLogin} />
             <Stack.Screen name="PhoneLogin" component={PhoneLogin} />

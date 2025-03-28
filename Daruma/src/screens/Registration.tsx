@@ -382,6 +382,7 @@ const createUser = async () => {
       styles.inputContainer,
       focusedInput === field.name && { borderBottomColor: 'black' }, // Linha preta ao focar
     ]}
+    
   >
     <TextInput
       style={styles.input}
@@ -625,6 +626,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    
   },
 
   container: {
@@ -632,6 +634,8 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'flex-start',  // Alinhar conteúdo no topo
     alignItems: 'flex-start',  // Alinhar conteúdo à esquerda
+    
+    
   },
 
   header: {
