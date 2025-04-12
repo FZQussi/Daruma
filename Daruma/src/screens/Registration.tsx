@@ -199,7 +199,7 @@ const createUser = async () => {
     const user = userCredential.user;
     await setDoc(doc(db, 'users', user.uid), { email, username });
     Alert.alert('Sucesso', 'Registro concluído com sucesso!');
-    navigation.navigate('Home');
+    navigation.navigate('ChatQueue');
     if (user) {
       // Usuário criado com sucesso, agora vamos finalizar o registro
       finalizeRegistration(user);
@@ -255,7 +255,7 @@ const createUser = async () => {
 
       setLoading(false);
       Alert.alert('Sucesso', 'Registro concluído com sucesso!');
-      navigation.navigate('Home'); // Redireciona para a tela principal ou onde desejar
+      navigation.navigate('ChatQueue'); // Redireciona para a tela principal ou onde desejar
     } catch (error) {
       console.error('Erro ao salvar dados no Firestore:', error);
       setLoading(false);
@@ -449,7 +449,7 @@ const createUser = async () => {
               onBlur={handleBlurPicker}
             >
               <Picker.Item label="Selecione o Gênero" value="" />
-              <Picker.Item label="Masculino" value="male" />
+              <Picker.Item label="Masculino" value="Male" />
               <Picker.Item label="Feminino" value="Female" />
               <Picker.Item label="Outro" value="other" />
             </Picker>
@@ -465,8 +465,8 @@ const createUser = async () => {
               onBlur={handleBlurPicker}
             >
               <Picker.Item label="Selecione as Preferências" value="" />
-              <Picker.Item label="Mulheres" value="women" />
-              <Picker.Item label="Homens" value="men" />
+              <Picker.Item label="Mulheres" value="Female" />
+              <Picker.Item label="Homens" value="Male" />
               <Picker.Item label="Ambos" value="both" />
             </Picker>
           </Animated.View>

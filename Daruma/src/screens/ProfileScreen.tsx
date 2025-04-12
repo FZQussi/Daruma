@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Animated, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Animated, TouchableOpacity, Modal, Dimensions } from 'react-native';
 import { getFirestore, doc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import Swiper from 'react-native-swiper';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Appbar } from 'react-native-paper';  // Importando o Appbar
 import Svg, { Path } from 'react-native-svg'; // Importando o SVG para usar o ícone de lápis
 import { RootStackParamList } from './types';
+
 
 
 type ProfileScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Profile'>;
@@ -26,7 +28,7 @@ interface ProfileProps {
 
 const db = getFirestore();
 const auth = getAuth();
-
+const { width, height } = Dimensions.get('window'); // Obter as dimensões da tela
 const Profile: React.FC<ProfileProps> = ({ navigation }) => {
   const userId = auth.currentUser?.uid; // Obtendo o ID do usuário logado
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -89,13 +91,30 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
       useNativeDriver: false,
     }).start();
   };
-
+  const handleLogout = async () => {
+    try {
+      await getAuth().signOut();  // Faz logout do usuário
+  
+      // Redefine o histórico de navegação, removendo todas as telas anteriores
+      navigation.reset({
+        index: 0,  // Índice da nova tela (geralmente, 0 é a tela inicial)
+        routes: [{ name: 'Login' }],  // Nome da tela para onde o usuário será redirecionado
+      });
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error);
+    }
+  };
   if (!userProfile) {
     return <Text>Carregando perfil...</Text>;
   }
 
   return (
     <View style={styles.container}>
+      <Appbar.Header>
+        <Appbar.Content title="Perfil" />
+        <Appbar.Action icon="account-edit" onPress={() => navigation.navigate('EditProfile')} />
+        <Appbar.Action icon="logout" onPress={handleLogout} />
+      </Appbar.Header>
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <TouchableOpacity onPress={() => setModalVisible(true)}>
           <Image source={{ uri: userProfile.profilePicture }} style={styles.profileImage} />
@@ -131,16 +150,7 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
       </Modal>
 
       {/* Botão de editar no topo direito com ícone SVG */}
-      <TouchableOpacity onPress={() => navigation.navigate('EditProfile')} style={styles.editButton}>
-      <Svg width={30} height={30} viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12.2424 20H17.5758M4.48485 16.5L15.8242 5.25607C16.5395 4.54674 17.6798 4.5061 18.4438 5.16268V5.16268C19.2877 5.8879 19.3462 7.17421 18.5716 7.97301L7.39394 19.5L4 20L4.48485 16.5Z"
-      stroke="#464455"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-      </TouchableOpacity>
+      
       <View style={styles.navbar}>
         <TouchableOpacity style={styles.navButton} onPress={() => navigation.navigate('MatchList')}>
           <Svg width={30} height={30} viewBox="0 0 24 24" fill="none">
@@ -215,28 +225,85 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  scrollContainer: { paddingTop: 20, paddingBottom: 20 },
-  profileImage: { width: 150, height: 150, borderRadius: 75, alignSelf: 'center', marginBottom: 15, marginTop: 70 },
-  infoCard: { backgroundColor: '#f8f8f8', padding: 15, borderRadius: 10, marginHorizontal: 20, alignItems: 'center' },
-  userName: { fontSize: 22, fontWeight: 'bold', color: '#333', textAlign: 'center' },
-  userBio: { fontSize: 16, color: '#666', textAlign: 'center', marginTop: 5 },
-  progressBarContainer: { height: 5, backgroundColor: '#e0e0e0', borderRadius: 2, overflow: 'hidden', marginVertical: 15, marginHorizontal: 20 },
-  progressBar: { height: '100%', backgroundColor: '#3b5998' },
-  wrapper: { height: 400 },
-  slide: { justifyContent: 'center', alignItems: 'center' },
-  additionalPhoto: { width: 350, height: 450, borderRadius: 10 },
-  noImagesText: { fontStyle: 'italic', textAlign: 'center', color: 'gray' },
-  modalContainer: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
-  fullImage: { width: '90%', height: '70%', resizeMode: 'contain' },
-  closeArea: { position: 'absolute', width: '100%', height: '100%' },
-  editButton: { 
-    position: 'absolute', 
-    top: 20, 
-    right: 0, 
-    backgroundColor: 'transparent', 
-    padding: 10,
-    zIndex: 1 
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  scrollContainer: {
+    paddingTop: height * 0.05, // 5% da altura da tela
+    paddingBottom: height * 0.05, // 5% da altura da tela
+  },
+  profileImage: {
+    width: width * 0.4, // 40% da largura da tela
+    height: width * 0.4, // 40% da largura da tela
+    borderRadius: width * 0.2, // 50% da largura para deixar a imagem redonda
+    alignSelf: 'center',
+    marginBottom: height * 0.02, // 2% da altura da tela
+    marginTop: height * 0.01, // 10% da altura da tela
+  },
+  infoCard: {
+    backgroundColor: '#f8f8f8',
+    padding: width * 0.05, // 5% da largura da tela
+    borderRadius: 10,
+    marginHorizontal: width * 0.05, // 5% da largura da tela
+    alignItems: 'center',
+  },
+  userName: {
+    fontSize: width * 0.06, // 6% da largura da tela
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  userBio: {
+    fontSize: width * 0.04, // 4% da largura da tela
+    color: '#666',
+    textAlign: 'center',
+    marginTop: height * 0.01, // 1% da altura da tela
+  },
+  progressBarContainer: {
+    height: height * 0.005, // 0.5% da altura da tela
+    backgroundColor: '#e0e0e0',
+    borderRadius: 2,
+    overflow: 'hidden',
+    marginVertical: height * 0.02, // 2% da altura da tela
+    marginHorizontal: width * 0.05, // 5% da largura da tela
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: '#3b5998',
+  },
+  wrapper: {
+    height: height * 0.4, // 40% da altura da tela
+  },
+  slide: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  additionalPhoto: {
+    width: width * 0.9, // 90% da largura da tela
+    height: height * 0.45, // 45% da altura da tela
+    borderRadius: 10,
+  },
+  noImagesText: {
+    fontStyle: 'italic',
+    textAlign: 'center',
+    color: 'gray',
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImage: {
+    width: '90%',
+    height: '70%',
+    resizeMode: 'contain',
+  },
+  closeArea: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
   },
   navbar: {
     flexDirection: 'row',
