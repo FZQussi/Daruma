@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Image, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
 import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { app } from './firebaseConfig';
@@ -12,7 +12,7 @@ import Swiper from 'react-native-swiper';
 import {  Appbar, Dialog, Portal, RadioButton, TextInput, Button, FAB} from 'react-native-paper';
 const db = getFirestore(app);
 const auth = getAuth(app);
-
+const { width, height } = Dimensions.get('window');
 interface Profile {
   id: string;
   firstName: string;
@@ -35,7 +35,7 @@ const MatchScreen = () => {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [visible, setVisible] = useState(false);
-  const [gender, setGender] = useState('Both');
+  const [gender, setGender] = useState('');
 
   const currentUser = auth.currentUser;
   const showDialog = () => setVisible(true);
@@ -248,72 +248,64 @@ const MatchScreen = () => {
 
       {/* Dialog para escolher preferências */}
       <Portal>
-        <Dialog visible={visible} onDismiss={hideDialog}>
-          <Dialog.Title>Preferências</Dialog.Title>
-          <Dialog.Content>
-            <Text>Escolha o seu gênero preferido</Text>
-            <RadioButton.Group onValueChange={newValue => setGender(newValue)} value={gender}>
-              <RadioButton.Item label="Masculino" value="Male" />
-              <RadioButton.Item label="Feminino" value="Female" />
-              <RadioButton.Item label="Ambos" value="Both" />
-            </RadioButton.Group>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={hideDialog}>Cancelar</Button>
-            <Button onPress={handleSavePreferences}>Salvar</Button>
-          </Dialog.Actions>
-        </Dialog>
-      </Portal>
+  <Dialog visible={visible} onDismiss={hideDialog} style={styles.dialog}>
+    <Dialog.Title style={styles.title}>Preferências</Dialog.Title>
+    <Dialog.Content>
+      <Text style={styles.text}>Escolha o seu gênero preferido</Text>
+      <RadioButton.Group onValueChange={newValue => setGender(newValue)} value={gender}>
+  <RadioButton.Item 
+    label="Masculino" 
+    value="Male" 
+    labelStyle={styles.radioLabel} 
+    color="#4A90E2" // azul bebê
+  />
+  <RadioButton.Item 
+    label="Feminino" 
+    value="Female" 
+    labelStyle={styles.radioLabel} 
+    color="#4A90E2"
+  />
+  <RadioButton.Item 
+    label="Ambos" 
+    value="Both" 
+    labelStyle={styles.radioLabel} 
+    color="#4A90E2"
+  />
+</RadioButton.Group>
+    </Dialog.Content>
+    <Dialog.Actions>
+      <Button onPress={hideDialog} textColor="#4A90E2">Cancelar</Button>
+      <Button onPress={handleSavePreferences} textColor="#4A90E2">Salvar</Button>
+    </Dialog.Actions>
+  </Dialog>
+</Portal>
         
 
         {/* ScrollView para tornar o perfil rolável */}
-        <ScrollView contentContainerStyle={styles.profileCardContainer}>
-          {loading ? (
-            <Text style={styles.loadingText}>A carregar perfis...</Text>
-          ) : profiles.length === 0 ? (
-            <Text style={styles.loadingText}>Não existem perfis disponíveis.</Text>
-          ) : profile === null ? (
-            <Text style={styles.loadingText}>Não há mais perfis disponíveis.</Text>
-          ) : (
-            <View style={styles.profileCard}>
-              
-              <Image source={{ uri: profile.profilePicture }} style={styles.profileImage} />
-              <Text style={styles.profileName}>
-                {profile.firstName} {profile.lastName}, {calculateAge(profile.birthDate)}
-              </Text>
-              <Text style={styles.profileBio}>{profile.UserBio}</Text>
+        <View style={styles.profileCardContainer}>
+  {loading ? (
+    <Text style={styles.loadingText}>A carregar perfis...</Text>
+  ) : profiles.length === 0 ? (
+    <Text style={styles.loadingText}>Não existem perfis disponíveis.</Text>
+  ) : profile === null ? (
+    <Text style={styles.loadingText}>Não há mais perfis disponíveis.</Text>
+  ) : (
+    <View style={styles.profileCard}>
+      <ScrollView contentContainerStyle={styles.profileContent} showsVerticalScrollIndicator={false}>
+        <Image source={{ uri: profile.profilePicture }} style={styles.profileImage} />
+        <Text style={styles.profileName}>
+          {profile.firstName} {profile.lastName}, {calculateAge(profile.birthDate)}
+        </Text>
+        <Text style={styles.profileBio}>{profile.UserBio}</Text>
 
-              {/* Exibir imagens adicionais se existirem */}
-              {profile.additionalPictures.length > 0 && (
-                <View style={styles.additionalImagesContainer}>
-                  <Image
-                    key={0}
-                    source={{ uri: profile.additionalPictures[0] }}
-                    style={styles.additionalImage}
-                  />
-                </View>
-              )}
-              {profile.additionalPictures.length > 1 && (
-                <View style={styles.additionalImagesContainer}>
-                  <Image
-                    key={1}
-                    source={{ uri: profile.additionalPictures[1] }}
-                    style={styles.additionalImage}
-                  />
-                </View>
-              )}
-              {profile.additionalPictures.length > 2 && (
-                <View style={styles.additionalImagesContainer}>
-                  <Image
-                    key={2}
-                    source={{ uri: profile.additionalPictures[2] }}
-                    style={styles.additionalImage}
-                  />
-                </View>
-              )}
-            </View>
-          )}
-        </ScrollView>
+        {profile.additionalPictures.map((pic, index) => (
+          <Image key={index} source={{ uri: pic }} style={styles.additionalImage} />
+        ))}
+      </ScrollView>
+    </View>
+  )}
+</View>
+
 
         {/* Botões Like e Dislike */}
         <View style={styles.buttonContainer}>
@@ -412,23 +404,22 @@ const MatchScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'white',
   },
   headerBar: {
     position: 'absolute',
-  
     width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 50,
-    paddingVertical: 20,
-    paddingHorizontal: 20,
+    paddingTop: height * 0.06,
+    paddingVertical: height * 0.025,
+    paddingHorizontal: width * 0.05,
     zIndex: 1000,
     backgroundColor: 'white',
   },
   headerText: {
-    fontSize: 18,
+    fontSize: width * 0.045,
     fontWeight: 'bold',
     color: 'black',
   },
@@ -437,8 +428,8 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
+    paddingVertical: height * 0.007,
+    paddingHorizontal: width * 0.03,
     borderRadius: 5,
   },
   buttonText: {
@@ -446,107 +437,120 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   loadingText: {
-    fontSize: 16,
+    fontSize: width * 0.04,
     color: 'white',
     textAlign: 'center',
-    marginTop: 20,
+    marginTop: height * 0.02,
   },
   profileCardContainer: {
-    paddingTop: 100, 
-    paddingBottom: 150, // Padding extra para a navbar fixa
+    flex: 1,
+    padding: width * 0.01,
+    justifyContent: 'center',
     alignItems: 'center',
   },
   profileCard: {
-    width: '95%',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    width: '100%',
+    maxWidth: 380,
+    height: height * 0.85,
     borderRadius: 20,
-    padding: 0,
-    paddingBottom: 100,
-    alignItems: 'center',
-    elevation: 5,  // Mantém a sombra no Android
+    backgroundColor: 'white',
+    overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: -1 }, // Sombra apenas no topo e laterais
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
-    shadowRadius: 5,
-    marginTop: 50,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  
-  
+  dialog: {
+    backgroundColor: 'white', // baby blue background
+  },
+  title: {
+    color: '#0277BD', // slightly darker baby blue
+    fontWeight: 'bold',
+  },
+  text: {
+    color: '#01579B', // darker blue for contrast
+  },
+  radioLabel: {
+    color: '#0277BD',
+  },
+  profileContent: {
+    alignItems: 'center',
+  },
   profileCardInner: {
     width: '100%',
     height: '100%',
     borderRadius: 20,
-    padding: 15,  
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',  
-    overflow: 'hidden',  
-  },  
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    overflow: 'hidden',
+  },
   profileImage: {
-    width: '100%',
-    height: 500,
+    width: width * 1,
+    height: height * 0.55,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginBottom: 15,
+    marginBottom: height * 0.01,
+    
   },
   profileName: {
-    fontSize: 22,
+    fontSize: width * 0.055,
     fontWeight: 'bold',
     color: '#333',
   },
   profileBio: {
-    fontSize: 16,
+    fontSize: width * 0.04,
     color: '#555',
     textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 15,
+    marginTop: height * 0.01,
+    marginBottom: height * 0.015,
   },
   additionalImagesContainer: {
     marginTop: 0,
     marginBottom: 0,
   },
   additionalImage: {
-    width: 391,
-    height: 500,
+    width: width * 1,
+    height: height * 0.55,
   },
   buttonContainer: {
     position: 'absolute',
-    bottom: 100,
+    bottom: height * 0.12,
     flexDirection: 'row',
     justifyContent: 'center',
     width: '100%',
-    gap: 170,
+    gap: width * 0.4,
   },
   actionButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: width * 0.15,
+    height: width * 0.15,
+    borderRadius: width * 0.075,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1 ,
-    elevation: 5,  // Mantém a sombra no Android
+    borderWidth: 1,
+    elevation: 5,
     shadowColor: '#000',
-    shadowOffset: { width: 5, height: 0}, // Sombra apenas no topo e laterais
+    shadowOffset: { width: 5, height: 0 },
     shadowOpacity: 0.6,
     shadowRadius: 5,
-    
   },
   dislikeButton: {
     backgroundColor: 'white',
-    padding: 15,
+    padding: width * 0.04,
     borderRadius: 50,
     elevation: 5,
   },
   likeButton: {
     backgroundColor: 'white',
-    padding: 15,
+    padding: width * 0.04,
     borderRadius: 50,
     elevation: 5,
   },
   navbar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',  // Para garantir que os ícones ocupem o mesmo espaço
+    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#fff',
-    paddingVertical: 10,
+    paddingVertical: height * 0.015,
     borderTopWidth: 1,
     borderColor: '#ddd',
     position: 'absolute',
@@ -554,35 +558,34 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   navButton: {
-    width: '18%',  // Definindo a largura de cada botão para ser a mesma
-    alignItems: 'center',  // Centraliza os ícones
-    justifyContent: 'center',  // Centraliza os ícones verticalmente
+    width: '18%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   navText: {
-    fontSize: 14,
+    fontSize: width * 0.035,
     fontWeight: 'bold',
     color: '#333',
   },
   navButtonActive: {
-    width: '18%',  // Definindo a largura de cada botão para ser a mesma
-    alignItems: 'center',  // Centraliza os ícones
+    width: '18%',
+    alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#A7C7E7',
-    borderRadius: 30, // Transforma em um círculo
-    padding: 5,   // Centraliza os ícones verticalmente
+    borderRadius: 30,
+    padding: width * 0.01,
   },
   fabLike: {
-    backgroundColor: '#A7C7E7', // Verde
+    backgroundColor: '#A7C7E7',
     position: 'absolute',
-    right: 40,
-    bottom: 20,
+    right: width * 0.1,
+    bottom: height * 0.025,
   },
-  
   fabDislike: {
-    backgroundColor: '#A7C7E7', // Vermelho
+    backgroundColor: '#A7C7E7',
     position: 'absolute',
-    left: 40,
-    bottom: 20,
+    left: width * 0.1,
+    bottom: height * 0.025,
   },
 });
 

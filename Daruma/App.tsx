@@ -22,6 +22,7 @@ import Registration from './src/screens/Registration';
 import Profile from './src/screens/Profile';
 import EditProfile from './src/screens/EditProfile';
 import LikeScreen from './src/screens/LikeScreen';
+import ProfilePlan from './src/screens/ProfilePlan';
 
 // Definição dos tipos das rotas
 export type RootStackParamList = {
@@ -42,6 +43,7 @@ export type RootStackParamList = {
   EditProfile: undefined;
   ProfileScreen: undefined;
   LikeScreen: undefined;
+  ProfilePlan: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -149,6 +151,7 @@ const App: React.FC = () => {
             <Stack.Screen name="MatchProfile" component={Profile} />
             <Stack.Screen name="EditProfile" component={EditProfile} />
             <Stack.Screen name="LikeScreen" component={LikeScreen} />
+            <Stack.Screen name="ProfilePlan" component={ProfilePlan} />
           </Stack.Navigator>  
         </NavigationContainer>
       </RegistrationProvider>

@@ -8,8 +8,8 @@ import {
   onSnapshot, updateDoc, doc, getDoc, query, where, getDocs
 } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
-import { RouteProp } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RouteProp, useIsFocused } from '@react-navigation/native';
+import { NativeStackNavigationProp  } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { RootStackParamList } from './types';
 import { Appbar, Avatar, Button } from 'react-native-paper';
@@ -22,9 +22,11 @@ const auth = getAuth();
 type Message = {
   id: string;
   senderId: string;
+  receiverId: string;
   text: string;
   timestamp: number;
   isDeleted: boolean;
+  read: boolean;
   imageUrl?: string;
   
 };
@@ -49,7 +51,7 @@ const MatchChat: React.FC<Props> = ({ route, navigation }) => {
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
   const [showImageZoom, setShowImageZoom] = useState(false);
   const flatListRef = React.useRef<FlatList>(null);
-  
+  const isFocused = useIsFocused();
   
 
   const openImageZoom = (imageUrl: string) => {
@@ -83,14 +85,22 @@ const MatchChat: React.FC<Props> = ({ route, navigation }) => {
 
   const sendMessage = async () => {
     if (!inputText.trim()) return;
-
+  
+    // ⚠️ Buscando o outro usuário
+    const matchRef = doc(db, 'Matches', matchId);
+    const matchSnap = await getDoc(matchRef);
+    const usersInMatch = matchSnap.exists() ? matchSnap.data().users : [];
+    const receiverId = usersInMatch.find((id: string) => id !== currentUser?.uid);
+  
     const newMessage = {
       senderId: currentUser?.uid,
+      receiverId: receiverId || '',
       text: inputText,
       timestamp: Date.now(),
       isDeleted: false,
+      read: false,
     };
-
+  
     try {
       await addDoc(collection(db, `chatRooms/${matchId}/messages`), newMessage);
       setInputText('');
@@ -98,24 +108,34 @@ const MatchChat: React.FC<Props> = ({ route, navigation }) => {
       console.error('Erro ao enviar mensagem:', error);
     }
   };
+  
 
   const sendImageMessage = async (imageUri: string, caption: string) => {
     try {
       const imageUrl = await uploadToCloudinary(imageUri);
-
+  
+      // ⚠️ Buscando o outro usuário
+      const matchRef = doc(db, 'Matches', matchId);
+      const matchSnap = await getDoc(matchRef);
+      const usersInMatch = matchSnap.exists() ? matchSnap.data().users : [];
+      const receiverId = usersInMatch.find((id: string) => id !== currentUser?.uid);
+  
       const message = {
         senderId: currentUser?.uid,
+        receiverId: receiverId || '',
         text: caption,
         imageUrl,
         timestamp: Date.now(),
         isDeleted: false,
+        read: false,
       };
-
+  
       await addDoc(collection(db, `chatRooms/${matchId}/messages`), message);
     } catch (error) {
       console.error('Erro ao enviar imagem:', error);
     }
   };
+  
 
   const pickImage = async (fromCamera = false) => {
     const result = await (fromCamera
@@ -238,6 +258,37 @@ const MatchChat: React.FC<Props> = ({ route, navigation }) => {
     fetchOtherUserName();
   }, [matchId, currentUser]);
 
+useEffect(() => {
+  if (!matchId || !currentUser) return;
+
+  const messagesRef = collection(db, `chatRooms/${matchId}/messages`);
+  const q = query(messagesRef, orderBy('timestamp', 'desc'));
+
+  const unsubscribe = onSnapshot(q, async (snapshot) => {
+    const loadedMessages: Message[] = [];
+
+    await Promise.all(
+      snapshot.docs.map(async (docSnap) => {
+        const data = docSnap.data() as Message;
+
+        // Marcar como lido se for para o usuário atual, ainda não lida, e a tela estiver focada
+        if (data.receiverId === currentUser.uid && !data.read && isFocused) {
+          await updateDoc(doc(db, `chatRooms/${matchId}/messages`, docSnap.id), {
+            read: true,
+          });
+        }
+
+        loadedMessages.push({ id: docSnap.id, ...data });
+      })
+    );
+
+    setMessages(loadedMessages);
+  });
+
+  return () => unsubscribe();
+}, [matchId, currentUser, isFocused]); // 👈 isFocused incluído aqui
+
+  
   return (
     <View style={styles.container}>
       <Appbar.Header>

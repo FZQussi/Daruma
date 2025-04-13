@@ -6,6 +6,8 @@ import { app } from './firebaseConfig';
 import * as ImagePicker from 'expo-image-picker';
 import uploadToCloudinary from './uploadToCloudinary'; // Importando a função de upload
 import Svg, { Path } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
+
 
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -28,10 +30,14 @@ const EditProfile: React.FC = () => {
   const [firstName, setFirstName] = useState<string>('');
   const [lastName, setLastName] = useState<string>('');
   const [userBio, setUserBio] = useState<string>('');
+  const navigation = useNavigation();
+  const [accountType, setAccountType] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       const user = auth.currentUser;
+      
+
       if (user) {
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
@@ -300,6 +306,27 @@ const EditProfile: React.FC = () => {
 
       {/* Exibindo erro, caso exista */}
       {error && <Text style={styles.error}>{error}</Text>}
+      <View style={{ marginTop: 30, alignItems: 'center' }}>
+  <TouchableOpacity
+    onPress={() => navigation.navigate('ProfilePlan')}
+    style={{
+      backgroundColor: '#007AFF',
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      marginBottom: 5,
+    }}
+  >
+    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Ir para Plano</Text>
+  </TouchableOpacity>
+
+  {accountType !== null && (
+    <Text style={{ marginTop: 5, color: '#444' }}>
+      Tipo de conta: {accountType}
+    </Text>
+  )}
+</View>
+
     </ScrollView>
   );
 };

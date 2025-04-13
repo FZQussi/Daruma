@@ -1,52 +1,33 @@
-const admin = require("firebase-admin");
-const functions = require("firebase-functions");
+import * as functions from 'firebase-functions';
+import * as admin from 'firebase-admin';
 
 admin.initializeApp();
-
 const db = admin.firestore();
 
-// Função para emparelhar usuários
-exports.matchUsers = functions.firestore
-    .document("chatQueue/{userId}")
-    .onCreate(async (snap, context) => {
-      const newUser = snap.data();
-      const userId = snap.id;
+export const checkExpiredSubscriptions = functions.pubsub
+  .schedule('every 24 hours')
+  .onRun(async () => {
+    const usersRef = db.collection('users');
+    const snapshot = await usersRef.get();
 
-      // Verificar se há pelo menos dois usuários na fila
-      const querySnapshot = await db.collection("chatQueue")
-          .where("status", "==", "waiting")
-          .limit(2) // Limita a consulta a 2 usuários
-          .get();
+    const now = new Date();
+    const batch = db.batch();
 
-      // Se houver menos de 2 usuários, não faz nada
-      if (querySnapshot.size < 2) {
-        return;
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const subscriptionEnd = data.subscriptionEnd ? new Date(data.subscriptionEnd) : null;
+
+      if (subscriptionEnd && now > subscriptionEnd) {
+        console.log(`Plano expirado para: ${doc.id}`);
+        batch.update(doc.ref, {
+          accountType: 'Free',
+          subscriptionStart: null,
+          subscriptionEnd: null,
+        });
       }
-
-      // Criar uma nova sala para os 2 usuários
-      const users = querySnapshot.docs.map((doc) => doc.data());
-      const user1 = users[0];
-      const user2 = users[1];
-
-      // Criar uma nova sala de chat
-      const chatRoomId = `${user1.userId}_${user2.userId}`;
-      const chatRoomData = {
-        users: [user1.userId, user2.userId],
-        status: "open",
-        createdAt: new Date().toISOString(),
-      };
-
-      // Criar o documento da sala de chat
-      await db.collection("chatRooms").doc(chatRoomId).set(chatRoomData);
-
-      // Atualizar os usuários na fila para indicar que estão emparelhados
-      await db.collection("chatQueue").doc(user1.userId).update({status: "matched"});
-      await db.collection("chatQueue").doc(user2.userId).update({status: "matched"});
-
-      // Remover os usuários da fila
-      await db.collection("chatQueue").doc(user1.userId).delete();
-      await db.collection("chatQueue").doc(user2.userId).delete();
-
-    // Optional: Notificar os usuários ou redirecioná-los para o chat
-    // Aqui você pode implementar um sistema de notificação ou fazer o redirecionamento no seu app React Native
     });
+
+    await batch.commit();
+    console.log('Verificação de subscrições concluída.');
+    return null;
+  });

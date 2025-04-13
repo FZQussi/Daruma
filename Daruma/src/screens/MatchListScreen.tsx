@@ -98,7 +98,10 @@ const MatchListScreen: React.FC<{ navigation: NavigationProp }> = ({ navigation 
   const [usernames, setUsernames] = useState<{ [uid: string]: string }>({});
   const [userProfilePics, setUserProfilePics] = useState<{ [uid: string]: string }>({});
   const currentUser = auth.currentUser;
-  const [lastMessages, setLastMessages] = useState<{ [matchId: string]: string }>({});
+  const [lastMessages, setLastMessages] = useState<{
+    [matchId: string]: { text: string; senderId: string; read: boolean }
+  }>({});
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [searchText, setSearchText] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -114,14 +117,27 @@ const MatchListScreen: React.FC<{ navigation: NavigationProp }> = ({ navigation 
 
   const fetchLastMessage = async (matchId: string) => {
     const messagesRef = collection(db, 'chatRooms', matchId, 'messages');
-    const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(1)); // Pega a última mensagem
+    const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(1));
     const querySnapshot = await getDocs(q);
   
     if (!querySnapshot.empty) {
-      const lastMessage = querySnapshot.docs[0].data().text || 'Mensagem não disponível';
-      setLastMessages(prev => ({ ...prev, [matchId]: lastMessage }));
+      const msg = querySnapshot.docs[0].data();
+      setLastMessages(prev => ({
+        ...prev,
+        [matchId]: {
+          text: msg.text 
+                ? msg.text 
+                : msg.imageUrl 
+                  ? 'Foto' 
+                  : 'Mensagem não disponível',
+          senderId: msg.senderId || '',
+          read: msg.read || false,
+        }
+      }));
     }
   };
+  
+  
   
   useEffect(() => {
     const fetchMatches = async () => {
@@ -244,26 +260,50 @@ const MatchListScreen: React.FC<{ navigation: NavigationProp }> = ({ navigation 
               const otherUserId = item.users.find((user) => user !== currentUser?.uid);
               const otherUsername = otherUserId ? usernames[otherUserId] : 'Usuário';
               const profilePicture = otherUserId ? userProfilePics[otherUserId] : '';
-              const lastMessageText = lastMessages[item.id] || 'Carregando...';
-              
+              const lastMessage = lastMessages[item.id];
+              const lastMessageText = lastMessage ? lastMessage.text : 'Carregando...';
+            
+              const isUnreadFromOtherUser =
+                    lastMessage &&
+                    lastMessage.senderId !== currentUser?.uid &&
+                    !lastMessage.read;
+            
               return (
-                <TouchableOpacity 
-                  style={styles.matchItem} 
-                  onPress={() => openChat(item.id)} // 🔹 Clicking anywhere opens chat
+                <TouchableOpacity
+                style={[
+                  styles.matchItem,
+                  isUnreadFromOtherUser && { backgroundColor: '#e6f7ff' }, // Mantido!
+                ]}
+                  onPress={() => openChat(item.id)}
                 >
-                  <TouchableOpacity onPress={() => openProfile(otherUserId!)}>
-                    <Image 
-                      source={{ uri: profilePicture || 'https://i.imgur.com/placeholder.png' }} 
-                      style={styles.profilePic} 
-                    />
-                  </TouchableOpacity>
-                  <View style={styles.matchDetails}>
-                    <Text style={styles.matchName}>{otherUsername}</Text>
-                    <Text style={styles.lastMessage}>{lastMessageText}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1, position: 'relative' }}>
+                    <TouchableOpacity onPress={() => openProfile(otherUserId!)}>
+                      <Image
+                        source={{ uri: profilePicture || 'https://i.imgur.com/placeholder.png' }}
+                        style={styles.profilePic}
+                      />
+                    </TouchableOpacity>
+            
+                    <View style={styles.matchDetails}>
+                      <Text style={styles.matchName}>{otherUsername}</Text>
+                      <Text
+                        style={[
+                          styles.lastMessage,
+                          isUnreadFromOtherUser && { fontWeight: 'bold', color: '#000' },
+                        ]}
+                      >
+                        {lastMessageText}
+                      </Text>
+                    </View>
+            
+                    {isUnreadFromOtherUser && (
+                      <View style={styles.unreadDot} />
+                    )}
                   </View>
                 </TouchableOpacity>
               );
             }}
+            
           />
         )}
       </View>
@@ -316,6 +356,17 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     
   },
+  unreadDot: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#007aff',
+  },
+  
+  
   profilePic: {
     width: 40,
     height: 40,

@@ -243,7 +243,7 @@ const createUser = async () => {
         additionalPictures: await Promise.all(additionalImagesUri.map(async (uri) => uploadToCloudinary(uri))),
         likedUsers: [],
         dislikedUsers: [],
-        accountType: 'normal',
+        accountType: 'Free',
         status: 'offline',
         location,
         device: deviceInfo,
@@ -522,7 +522,7 @@ const createUser = async () => {
     </TouchableOpacity>
   ))}
 </View>
-<Button mode="elevated" onPress={handleNextStep} >
+<Button rippleColor={"#ADD8E6"} buttonColor='#ADD8E6' mode="contained" onPress={handleNextStep}>
 <Text style={styles.buttonText}>
     {loading ? 'Carregando...' : 'Finalizar Registro'}
   </Text>
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',         // Lighter border color when disabled
   },
   buttonText: {
-    color: 'black',             // Blue text color
+    color: 'white',             // Blue text color
     fontSize: 16,              // Font size for the button text
     fontWeight: 'bold',        // Bold text
   },

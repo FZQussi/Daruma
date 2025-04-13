@@ -110,7 +110,7 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Appbar.Header>
+      <Appbar.Header style={{ backgroundColor: '#fff' }}>
         <Appbar.Content title="Perfil" />
         <Appbar.Action icon="account-edit" onPress={() => navigation.navigate('EditProfile')} />
         <Appbar.Action icon="logout" onPress={handleLogout} />
