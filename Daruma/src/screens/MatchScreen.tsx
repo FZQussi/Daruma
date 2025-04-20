@@ -20,6 +20,9 @@ interface Profile {
   profilePicture: string;
   additionalPictures: string[];
   gender: string;
+  birthDate: string,
+  UserBio: string,
+
 }
 
 interface Match {
@@ -280,6 +283,13 @@ const MatchScreen = () => {
   </Dialog>
 </Portal>
         
+{profile && (
+  <View style={styles.profileOverlay}>
+    <Text style={styles.overlayName}>
+      {profile.firstName}, {calculateAge(profile.birthDate)}
+    </Text>
+  </View>
+)}
 
         {/* ScrollView para tornar o perfil rolável */}
         <View style={styles.profileCardContainer}>
@@ -293,10 +303,15 @@ const MatchScreen = () => {
     <View style={styles.profileCard}>
       <ScrollView contentContainerStyle={styles.profileContent} showsVerticalScrollIndicator={false}>
         <Image source={{ uri: profile.profilePicture }} style={styles.profileImage} />
-        <Text style={styles.profileName}>
-          {profile.firstName} {profile.lastName}, {calculateAge(profile.birthDate)}
-        </Text>
-        <Text style={styles.profileBio}>{profile.UserBio}</Text>
+        
+        {profile.UserBio ? (
+  <View style={{ marginTop: 16 }}>
+    <Text style={styles.profileBioTitle}>Sobre Mim</Text>
+    <Text style={styles.profileBio}>{profile.UserBio}</Text>
+  </View>
+) : null}
+
+
 
         {profile.additionalPictures.map((pic, index) => (
           <Image key={index} source={{ uri: pic }} style={styles.additionalImage} />
@@ -451,7 +466,7 @@ const styles = StyleSheet.create({
   profileCard: {
     width: '100%',
     maxWidth: 380,
-    height: height * 0.85,
+    height: height * 0.80,
     borderRadius: 20,
     backgroundColor: 'white',
     overflow: 'hidden',
@@ -460,6 +475,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 5,
+    marginBottom: height * 0.05,
   },
   dialog: {
     backgroundColor: 'white', // baby blue background
@@ -498,12 +514,23 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   profileBio: {
-    fontSize: width * 0.04,
+    fontSize: width * 0.05,
     color: '#555',
-    textAlign: 'center',
+    textAlign: 'left',
     marginTop: height * 0.01,
     marginBottom: height * 0.015,
+    fontWeight: 'bold',
   },
+  profileBioTitle: {
+    fontSize: 14,
+    color: '#777',
+    fontWeight: '500',
+    marginBottom: 4,
+    textAlign: 'left',
+    width: height * 0.4,
+  },
+  
+    
   additionalImagesContainer: {
     marginTop: 0,
     marginBottom: 0,
@@ -587,6 +614,22 @@ const styles = StyleSheet.create({
     left: width * 0.1,
     bottom: height * 0.025,
   },
+  profileOverlay: {
+    position: 'absolute',
+    top: height * 0.17, // Ajusta conforme necessário
+    left: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)', // fundo semitransparente
+    padding: 8,
+    borderRadius: 10,
+  },
+  
+  overlayName: {
+    color: 'white',
+    fontSize: 22,
+    fontWeight: 'bold',
+  },
+  
 });
 
 export default MatchScreen;

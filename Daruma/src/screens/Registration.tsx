@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useRef } from 'react';
-import { View,StyleSheet, ScrollView, Image, Alert, ImageBackground, Animated, TouchableOpacity } from 'react-native';
+import { View,StyleSheet, ScrollView, Image, Alert, ImageBackground, Animated, TouchableOpacity,Dimensions } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import * as ImagePicker from 'expo-image-picker';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
@@ -31,6 +32,7 @@ const fetchCountries = async () => {
 };
 
 const Registration: React.FC<any> = ({ navigation }) => {
+  const [step, setStep] = useState(1);
   const { userData, setUserData } = useRegistration();
   const db = getFirestore(app);
   // Estados do formulário
@@ -51,6 +53,7 @@ const Registration: React.FC<any> = ({ navigation }) => {
   const minimumYear = currentYear - 18;
   const [showAlert, setShowAlert] = useState(false);
   const [focusedInput, setFocusedInput] = useState(null);
+  const { width, height } = Dimensions.get('window');
   
   // Animated value for border color
   const animatedBorder = useRef(new Animated.Value(0)).current;
@@ -647,10 +650,10 @@ const styles = StyleSheet.create({
   },
 
   cardContainer: {
-    width: '95%',  // Largura aumentada do container
+    width: '100%',  // Largura aumentada do container
     backgroundColor: 'white',
     borderRadius: 15,
-    padding: 20,
+    padding: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,

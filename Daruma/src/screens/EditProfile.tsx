@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Image, TextInput, StyleSheet, ActivityIndicator, Alert, ScrollView, FlatList, TouchableOpacity } from 'react-native';
-import { getAuth } from 'firebase/auth';
+import { View, Text, Button, Image, TextInput, StyleSheet, ActivityIndicator, Alert, ScrollView, FlatList, TouchableOpacity, Modal } from 'react-native';
+import { getAuth, sendPasswordResetEmail  } from 'firebase/auth';
 import { getFirestore, doc, getDoc, updateDoc, DocumentData } from 'firebase/firestore';
 import { app } from './firebaseConfig';
 import * as ImagePicker from 'expo-image-picker';
@@ -22,6 +22,7 @@ interface UserData {
 }
 
 const EditProfile: React.FC = () => {
+  const [email, setEmail] = useState('');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,6 +33,12 @@ const EditProfile: React.FC = () => {
   const [userBio, setUserBio] = useState<string>('');
   const navigation = useNavigation();
   const [accountType, setAccountType] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState('');
+
+
+  const [currentPassword, setCurrentPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [showModal, setShowModal] = useState(false); 
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -69,6 +76,23 @@ const EditProfile: React.FC = () => {
     fetchUserData();
   }, []);
 
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      Alert.alert('Sucesso', 'Verifique sua caixa de entrada para redefinir sua senha.');
+      setShowModal(false);  // Fechar o modal após o envio do e-mail
+    } catch (error: any) {
+      setErrorMessage(error.message);
+      Alert.alert('Erro', error.message);
+    }
+ };
+  
+  
   // Função para alterar a foto de perfil
   const pickProfileImageAndSave = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -280,8 +304,36 @@ const EditProfile: React.FC = () => {
         />
       </View>
 
-      <Button title="Salvar Alterações" onPress={saveChanges} />
+      {/* Abaixo está o botão para abrir o modal de redefinição de senha */}
+      <Text style={styles.forgotPassword} onPress={() => setShowModal(true)}>
+          Esqueci-me da minha palavra-passe
+      </Text>
+          
+      
 
+      <Button title="Salvar Alterações" onPress={saveChanges} />
+      {/* Modal para inserção de e-mail para redefinir a senha */}
+      <Modal
+        visible={showModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>Digite seu e-mail para redefinir a senha</Text>
+            <TextInput
+              style={styles.input}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              placeholder="Digite seu e-mail"
+            />
+            <Button title="Enviar E-mail" onPress={handlePasswordReset} />
+            <Button title="Fechar" onPress={() => setShowModal(false)} />
+          </View>
+        </View>
+      </Modal>
       {/* Exibindo fotos adicionais em uma FlatList */}
       <Text style={styles.subtitle}>Outras Fotos</Text>
       {additionalImages.length > 0 ? (
@@ -341,6 +393,26 @@ const styles = StyleSheet.create({
   additionalImage: { width: 150, height: 150, borderRadius: 10, margin: 5 },
   noImagesText: { fontStyle: 'italic', color: 'gray' },
   error: { color: 'red', marginTop: 10 },
+  forgotPassword: {
+    color: 'black',
+    marginTop: 15,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Fundo escuro
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: '80%',
+    alignItems: 'center',
+  },
 });
 
 export default EditProfile;
