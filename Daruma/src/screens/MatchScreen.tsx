@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Image, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
+import { View, Image, Text, StyleSheet, ScrollView, TouchableOpacity, ImageBackground, Dimensions , Modal} from 'react-native';
 import { getFirestore, collection, getDocs, doc, getDoc, updateDoc, arrayUnion, arrayRemove, setDoc, addDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 import { app } from './firebaseConfig';
@@ -13,6 +13,8 @@ import {  Appbar, Dialog, Portal, RadioButton, TextInput, Button, FAB} from 'rea
 const db = getFirestore(app);
 const auth = getAuth(app);
 const { width, height } = Dimensions.get('window');
+
+
 interface Profile {
   id: string;
   firstName: string;
@@ -39,23 +41,23 @@ const MatchScreen = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [visible, setVisible] = useState(false);
   const [gender, setGender] = useState('');
+  const [matchModalVisible, setMatchModalVisible] = useState(false);
+  const [matchedProfile, setMatchedProfile] = useState<Profile| null>(null);
+  const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
 
   const currentUser = auth.currentUser;
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
 
-    const handleSwipeLeft = async () => {
-    if (!profile || !currentUser) return;
-    await updateDoc(doc(db, 'users', currentUser.uid), { dislikes: arrayUnion(profile.id) });
-    getNextProfile();
+  const openMatchModal = (profile: Profile) => {
+    setMatchedProfile(profile);
+    setMatchModalVisible(true);
   };
-
-  const handleSwipeRight = async () => {
-    if (!profile || !currentUser) return;
-    await updateDoc(doc(db, 'users', currentUser.uid), { likes: arrayUnion(profile.id) });
-    getNextProfile();
+  
+  const closeMatchModal = () => {
+    setMatchedProfile(null);
+    setMatchModalVisible(false);
   };
-
   
   const fetchProfiles = async () => {
     if (!currentUser) return;
@@ -173,29 +175,37 @@ const MatchScreen = () => {
 
   const handleLike = async () => {
     if (!currentUser || !profile) return;
-
+  
     const userRef = doc(db, 'users', currentUser.uid);
+    const likedUserRef = doc(db, 'users', profile.id); // o utilizador que recebeu o like
     const likedUserId = profile.id;
-
+  
     try {
+      // Atualiza os dados do utilizador atual (quem deu like)
       await updateDoc(userRef, {
         likes: arrayUnion(likedUserId),
         dislikes: arrayRemove(likedUserId),
       });
-
+  
+      // Atualiza os dados do utilizador que recebeu o like
+      await updateDoc(likedUserRef, {
+        receivedLikes: arrayUnion(currentUser.uid),
+      });
+  
       const isMatch = await checkMatch(likedUserId);
-
+  
       if (isMatch) {
         console.log('🎉 Match encontrado!');
-        
+      
         const matchRef = await addDoc(collection(db, 'Matches'), {
           users: [currentUser.uid, likedUserId],
           status: 'ativo',
           createdAt: new Date(),
         });
-
+      
         const matchId = matchRef.id;
-
+        setCurrentMatchId(matchId); // salva o ID do match
+      
         const chatRoomRef = doc(db, 'chatRooms', matchId);
         await setDoc(chatRoomRef, {
           users: [currentUser.uid, likedUserId],
@@ -203,17 +213,21 @@ const MatchScreen = () => {
           status: 'ativo',
           createdAt: new Date(),
         });
-
+      
         console.log(`💬 Sala de chat criada: ${matchId}`);
-
-        navigation.navigate('MatchChats', { matchId });
+      
+        openMatchModal(profile);
+      
+        return;
       }
-
+      
+  
       getNextProfile();
     } catch (error) {
       console.error('Erro ao dar like:', error);
     }
   };
+  
 
   const handleDislike = async () => {
     if (!currentUser || !profile) return;
@@ -241,7 +255,37 @@ const MatchScreen = () => {
     }
     return age;
   };
+  const matchMessages = [
+    `Você e ${matchedProfile?.firstName} são Almas Gêmeas!`,
+    `🔥 Rolou química entre você e ${matchedProfile?.firstName}!`,
+    `✨ Match perfeito com ${matchedProfile?.firstName}!`,
+    `💫 Você e ${matchedProfile?.firstName} se curtiram de verdade!`,
+    `💖 Que casal! Você e ${matchedProfile?.firstName} formam uma dupla poderosa!`,
+    `🎉 ${matchedProfile?.firstName} também deu like em você! Bora conversar?`,
+    `💕 Você e ${matchedProfile?.firstName} nasceram pra se encontrar!`,
+    `💌 Cupido acertou em cheio com você e ${matchedProfile?.firstName}!`,
+    `🌟 A conexão entre você e ${matchedProfile?.firstName} é mágica!`,
+    `💥 Deu match! Você e ${matchedProfile?.firstName} são fogo e paixão!`,
+    `🍷 Hora de brindar esse match com ${matchedProfile?.firstName}!`,
+    `💃🕺 Você e ${matchedProfile?.firstName} vão arrasar juntos!`,
+    `🌈 Match colorido com ${matchedProfile?.firstName}, que vibe boa!`,
+    `🔥 O clima esquentou entre você e ${matchedProfile?.firstName}!`,
+    `🎯 Acertaram em cheio! ${matchedProfile?.firstName} também curtiu você.`,
+    `🧲 Você e ${matchedProfile?.firstName} se atraíram como ímãs!`,
+    `💬 ${matchedProfile?.firstName} está só esperando sua primeira mensagem!`,
+    `💞 Você e ${matchedProfile?.firstName} estão na mesma sintonia.`,
+    `🎶 Você e ${matchedProfile?.firstName} dariam uma bela canção de amor.`,
+    `🚀 Que conexão! Você e ${matchedProfile?.firstName} têm potencial interestelar!`,
+  ];
   
+  const [matchMessage, setMatchMessage] = useState('');
+  useEffect(() => {
+    if (matchModalVisible && matchedProfile) {
+      const randomIndex = Math.floor(Math.random() * matchMessages.length);
+      setMatchMessage(matchMessages[randomIndex]);
+    }
+  }, [matchModalVisible, matchedProfile]);
+    
   return (
       <View style={styles.container}>
 <Appbar.Header mode="small" style={{ backgroundColor: '#FFF' }}>
@@ -340,6 +384,53 @@ const MatchScreen = () => {
     color="white"
   />
 </View>
+<Portal>
+  <Modal visible={matchModalVisible} onDismiss={closeMatchModal} contentContainerStyle={styles.modalContainer}>
+    {matchedProfile && (
+      <View style={styles.innerContainer}>
+        <Image 
+          source={{ uri: matchedProfile.profilePicture }} 
+          style={styles.backgroundImage}
+          resizeMode="cover"
+        />
+        <Text style={styles.title}>💘 É um Match!</Text>
+        <Text style={styles.subtitle}>
+  {matchMessage}
+</Text>
+
+        <View style={styles.buttonRow}>
+          <Button 
+            mode="outlined" 
+            onPress={() => {
+              closeMatchModal();
+              getNextProfile();
+            }} 
+            textColor="white" 
+            style={styles.outlinedButton}
+          >
+            Continuar
+          </Button>
+          <Button 
+            mode="contained" 
+            onPress={() => {
+              closeMatchModal();
+              if (currentMatchId) {
+                navigation.navigate('MatchChats', { matchId: currentMatchId });
+                setCurrentMatchId(null);
+              } else {
+                console.warn("Match ID não disponível");
+              }
+            }} 
+            buttonColor="white" 
+            textColor="black"
+          >
+            Ir para o chat
+          </Button>
+        </View>
+      </View>
+    )}
+  </Modal>
+</Portal>
 
         {/* Navbar fixa no fundo */}
         <View style={styles.navbar}>
@@ -440,12 +531,12 @@ const styles = StyleSheet.create({
   },
   headerButtons: {
     flexDirection: 'row',
-    gap: 10,
+    gap: width * 0.02,
   },
   headerButton: {
     paddingVertical: height * 0.007,
     paddingHorizontal: width * 0.03,
-    borderRadius: 5,
+    borderRadius: width * 0.015,
   },
   buttonText: {
     color: 'black',
@@ -464,10 +555,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileCard: {
-    width: '100%',
-    maxWidth: 380,
-    height: height * 0.80,
-    borderRadius: 20,
+    width: width * 0.95,
+    height: height * 0.8,
+    borderRadius: width * 0.05,
     backgroundColor: 'white',
     overflow: 'hidden',
     shadowColor: '#000',
@@ -478,17 +568,27 @@ const styles = StyleSheet.create({
     marginBottom: height * 0.05,
   },
   dialog: {
-    backgroundColor: 'white', // baby blue background
+    backgroundColor: 'white',
   },
   title: {
-    color: '#0277BD', // slightly darker baby blue
+    fontSize: width * 0.09,
+    color: 'white',
     fontWeight: 'bold',
+    marginBottom: height * 0.02,
+  },
+  subtitle: {
+    fontSize: width * 0.05,
+    color: 'white',
+    marginBottom: height * 0.04,
+    textAlign: 'center', // <-- esta linha alinha o texto ao centro
   },
   text: {
-    color: '#01579B', // darker blue for contrast
+    color: '#01579B',
+    fontSize: width * 0.04,
   },
   radioLabel: {
     color: '#0277BD',
+    fontSize: width * 0.04,
   },
   profileContent: {
     alignItems: 'center',
@@ -496,17 +596,16 @@ const styles = StyleSheet.create({
   profileCardInner: {
     width: '100%',
     height: '100%',
-    borderRadius: 20,
+    borderRadius: width * 0.05,
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
     overflow: 'hidden',
   },
   profileImage: {
-    width: width * 1,
-    height: height * 0.55,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    width: width,
+    height: height * 0.8,
+    borderTopLeftRadius: width * 0.05,
+    borderTopRightRadius: width * 0.05,
     marginBottom: height * 0.01,
-    
   },
   profileName: {
     fontSize: width * 0.055,
@@ -522,22 +621,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   profileBioTitle: {
-    fontSize: 14,
+    fontSize: width * 0.035,
     color: '#777',
     fontWeight: '500',
-    marginBottom: 4,
+    marginBottom: height * 0.005,
     textAlign: 'left',
     width: height * 0.4,
   },
-  
-    
   additionalImagesContainer: {
     marginTop: 0,
     marginBottom: 0,
   },
   additionalImage: {
-    width: width * 1,
-    height: height * 0.55,
+    width: width,
+    height: height * 0.8,
   },
   buttonContainer: {
     position: 'absolute',
@@ -599,7 +696,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#A7C7E7',
-    borderRadius: 30,
+    borderRadius: width * 0.08,
     padding: width * 0.01,
   },
   fabLike: {
@@ -616,20 +713,41 @@ const styles = StyleSheet.create({
   },
   profileOverlay: {
     position: 'absolute',
-    top: height * 0.17, // Ajusta conforme necessário
-    left: 20,
+    top: height * 0.17,
+    left: width * 0.05,
     zIndex: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)', // fundo semitransparente
-    padding: 8,
-    borderRadius: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    padding: width * 0.02,
+    borderRadius: width * 0.03,
   },
-  
   overlayName: {
     color: 'white',
-    fontSize: 22,
+    fontSize: width * 0.055,
     fontWeight: 'bold',
   },
-  
+  modalContainer: {
+    flex: 1,
+  },
+  innerContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    opacity: 0.4,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: width * 0.05,
+  },
+  outlinedButton: {
+    borderColor: 'white',
+  },
 });
+
 
 export default MatchScreen;

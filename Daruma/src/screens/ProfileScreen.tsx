@@ -20,6 +20,7 @@ interface UserProfile {
   additionalPictures: string[];
   birthDate: string;
   UserBio: string;
+  verification: 'unverified' | 'verified' | 'pending';
 }
 
 interface ProfileProps {
@@ -29,6 +30,10 @@ interface ProfileProps {
 const db = getFirestore();
 const auth = getAuth();
 const { width, height } = Dimensions.get('window'); // Obter as dimensões da tela
+const verifiedIcon = 'https://res.cloudinary.com/dped93q3y/image/upload/v1745249536/verified_wsohim.png';
+const unverifiedIcon = 'https://res.cloudinary.com/dped93q3y/image/upload/v1745253107/unverified_kqwx9o.png';
+const pendingverifiedIcon = 'https://res.cloudinary.com/dped93q3y/image/upload/v1745253108/pending_ia0fbb.png';
+
 const Profile: React.FC<ProfileProps> = ({ navigation }) => {
   const userId = auth.currentUser?.uid; // Obtendo o ID do usuário logado
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -52,6 +57,7 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
           additionalPictures: userData.additionalPictures || [],
           birthDate: userData.birthDate,
           UserBio: userData.UserBio,
+          verification: userData.verification || false,
         };
         setUserProfile(profileData);
       }
@@ -69,7 +75,17 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
     }
     return age;
   };
-
+  const getVerificationIcon = (status) => {
+    switch (status) {
+      case 'verified':
+        return verifiedIcon;
+      case 'pending':
+        return pendingverifiedIcon;
+      case 'unverified':
+      default:
+        return unverifiedIcon;
+    }
+  };
   useEffect(() => {
     if (userProfile?.additionalPictures?.length) {
       const totalPictures = userProfile.additionalPictures.length;
@@ -121,7 +137,15 @@ const Profile: React.FC<ProfileProps> = ({ navigation }) => {
         </TouchableOpacity>
 
         <View style={styles.infoCard}>
-          <Text style={styles.userName}>{userProfile.firstName} {userProfile.lastName}, {calculateAge(userProfile.birthDate)}</Text>
+        <Text style={styles.userName}>
+  {userProfile.firstName} {userProfile.lastName}, {calculateAge(userProfile.birthDate)}
+  {userProfile.verification && (
+    <Image
+      source={{ uri: getVerificationIcon(userProfile.verification) }}
+      style={styles.verifiedIcon}
+    />
+  )}
+</Text>
           <Text style={styles.userBio}>{userProfile.UserBio}</Text>
         </View>
 
@@ -254,6 +278,13 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
+  verifiedIcon: {
+    width: 20,
+    height: 20,
+    marginLeft: 5,
+    marginTop: -2,
+  },
+  
   userBio: {
     fontSize: width * 0.04, // 4% da largura da tela
     color: '#666',

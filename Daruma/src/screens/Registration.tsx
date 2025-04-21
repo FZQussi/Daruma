@@ -248,6 +248,7 @@ const createUser = async () => {
         dislikedUsers: [],
         accountType: 'Free',
         status: 'offline',
+        verification: 'unverified',
         location,
         device: deviceInfo,
         createdAt: new Date(),

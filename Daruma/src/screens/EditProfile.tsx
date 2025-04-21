@@ -49,6 +49,7 @@ const EditProfile: React.FC = () => {
         try {
           const userDoc = await getDoc(doc(db, 'users', user.uid));
           if (userDoc.exists()) {
+            
             const data = userDoc.data() as DocumentData;
             setUserData({
               profilePicture: data.profilePicture || null,
@@ -77,6 +78,46 @@ const EditProfile: React.FC = () => {
   }, []);
 
 
+  const toggleVerificationStatus = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+  
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
+  
+      if (userSnap.exists()) {
+        const currentStatus = userSnap.data().verification || 'unverified';
+  
+        let newStatus;
+        switch (currentStatus) {
+          case 'unverified':
+            newStatus = 'pending';
+            break;
+          case 'pending':
+            newStatus = 'verified';
+            break;
+          case 'verified':
+          default:
+            newStatus = 'unverified';
+            break;
+        }
+  
+        await updateDoc(userRef, {
+          verification: newStatus,
+        });
+  
+        alert(`Status de verificação atualizado para "${newStatus}"`);
+      } else {
+        alert('Usuário não encontrado no banco de dados.');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar verificação:', error);
+      alert('Erro ao atualizar verificação.');
+    }
+  };
+  
+  
   const handlePasswordReset = async () => {
     if (!email) {
       Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
@@ -350,6 +391,11 @@ const EditProfile: React.FC = () => {
       ) : (
         <Text style={styles.noImagesText}>Nenhuma foto adicional.</Text>
       )}
+      <Button
+  title="Alternar Verificação"
+  onPress={toggleVerificationStatus}
+  color="#28a745"
+/>
 
       {/* Exibindo o botão para adicionar foto, apenas quando houver menos de 3 fotos adicionais */}
       {additionalImages.length < 3 && (
