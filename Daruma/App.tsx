@@ -7,22 +7,23 @@ import { View, Text, StyleSheet, Alert } from 'react-native';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
 import { app } from './src/screens/firebaseConfig';  // Importa a configuração do Firebase
 
-import ChatScreen from './src/screens/ChatScreen';
-import ChatQueue from './src/screens/ChatQueue';
-import LoginScreen from './src/screens/LoginScreen';  
-import EmailLogin from './src/screens/EmailLogin';    
-import PhoneLogin from './src/screens/PhoneLogin';    
-import ProfileScreen from './src/screens/ProfileScreen';
-import MatchScreen from './src/screens/MatchScreen';
-import MatchChat from './src/screens/MatchChat';
+import ChatScreen from './src/screens/RandChat/ChatScreen';
+import ChatQueue from './src/screens/RandChat/ChatQueue';
+import LoginScreen from './src/screens/Login/LoginScreen';  
+import EmailLogin from './src/screens/Login/EmailLogin';    
+import PhoneLogin from './src/screens/Login/PhoneLogin';    
+import ProfileScreen from './src/screens/Perfil/ProfileScreen';
+import MatchScreen from './src/screens/MatchScreen/MatchScreen';
+import MatchChat from './src/screens/Conversas/MatchChat';
 import { useNavigation } from '@react-navigation/native';
-import MatchListScreen from './src/screens/MatchListScreen';
+import MatchListScreen from './src/screens/Conversas/MatchListScreen';
 import { RegistrationProvider } from './src/context/RegistrationContext';
-import Registration from './src/screens/Registration'; 
-import Profile from './src/screens/Profile';
-import EditProfile from './src/screens/EditProfile';
-import LikeScreen from './src/screens/LikeScreen';
-import ProfilePlan from './src/screens/ProfilePlan';
+import Registration from './src/screens/Login/Registration'; 
+import Profile from './src/screens/Conversas/Profile';
+import EditProfile from './src/screens/Perfil/EditProfile';
+import LikeScreen from './src/screens/LikeScreen/LikeScreen';
+import ProfilePlan from './src/screens/Perfil/ProfilePlan';
+import Defenitions from './src/screens/Defenicoes/Defenitions';
 
 // Definição dos tipos das rotas
 export type RootStackParamList = {
@@ -44,6 +45,7 @@ export type RootStackParamList = {
   ProfileScreen: undefined;
   LikeScreen: undefined;
   ProfilePlan: undefined;
+  Defenitions: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -152,6 +154,7 @@ const App: React.FC = () => {
             <Stack.Screen name="EditProfile" component={EditProfile} />
             <Stack.Screen name="LikeScreen" component={LikeScreen} />
             <Stack.Screen name="ProfilePlan" component={ProfilePlan} />
+            <Stack.Screen name="Defenitions" component={Defenitions} />
           </Stack.Navigator>  
         </NavigationContainer>
       </RegistrationProvider>
