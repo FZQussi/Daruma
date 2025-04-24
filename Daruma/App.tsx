@@ -6,7 +6,7 @@ import { PaperProvider, Button } from 'react-native-paper';
 import { View, Text, StyleSheet, Alert } from 'react-native';
 import { getAuth, signOut, onAuthStateChanged } from 'firebase/auth';
 import { app } from './src/screens/firebaseConfig';  // Importa a configuração do Firebase
-
+import Toast from 'react-native-toast-message';
 import ChatScreen from './src/screens/RandChat/ChatScreen';
 import ChatQueue from './src/screens/RandChat/ChatQueue';
 import LoginScreen from './src/screens/Login/LoginScreen';  
@@ -134,6 +134,7 @@ const App: React.FC = () => {
 
   return (
     <PaperProvider> {/* Envolvendo todo o app com PaperProvider */}
+    
       <RegistrationProvider> 
         <NavigationContainer>
           <Stack.Navigator initialRouteName={user ? "Home" : "Login"} screenOptions={{ headerShown: false, animation: 'none' }}>
@@ -156,9 +157,13 @@ const App: React.FC = () => {
             <Stack.Screen name="ProfilePlan" component={ProfilePlan} />
             <Stack.Screen name="Defenitions" component={Defenitions} />
           </Stack.Navigator>  
+          
         </NavigationContainer>
+        
       </RegistrationProvider>
+      
     </PaperProvider> 
+    
   );
 };
 
