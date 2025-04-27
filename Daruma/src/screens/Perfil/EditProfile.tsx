@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import uploadToCloudinary from '../uploadToCloudinary'; // Importando a função de upload
 import Svg, { Path } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
-import { Appbar } from 'react-native-paper';
+import { Appbar, Chip } from 'react-native-paper';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const db = getFirestore(app);
@@ -22,6 +22,8 @@ interface UserData {
   UserBio: string;
   [key: string]: any;
   birthDate: string;
+  interests: [];
+  verification: string,
 }
 
 const EditProfile: React.FC = () => {
@@ -36,7 +38,7 @@ const EditProfile: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [selectedImageType, setSelectedImageType] = useState<'profile' | 'additional' | null>(null);
 
- 
+  const verifiedIcon = 'https://res.cloudinary.com/dped93q3y/image/upload/v1745249536/verified_wsohim.png';
 
 const [firstName, setFirstName] = useState<string>('');
 const [lastName, setLastName] = useState<string>('');
@@ -73,12 +75,42 @@ const [religion, setReligion] = useState<string>('');
 const [sexualaty, setSexualaty] = useState<string>('');
 const [smoking, setSmoking] = useState<string>('');
 const [status, setStatus] = useState<string>('offline');
-const [verification, setVerification] = useState<string>('unverified');
+const [verification, setVerification] = useState<string>('');
 const [workplace, setWorkplace] = useState<string>('');
 const [workposition, setWorkposition] = useState<string>('');
 const [zoodiacsign, setZoodiacsign] = useState<string>('');
 
+// contsmodals
 const [editModalVisible, setEditModalVisible] = useState(false);
+
+const [PesonaleditModalVisible, setPesonalEditModalVisible] = useState(false);
+const [TrabalhoeditModalVisible, setTrabalhoEditModalVisible] = useState(false);
+const [EducacaoeditModalVisible, setEducacaoEditModalVisible] = useState(false);
+const [MoodeditModalVisible, setMoodEditModalVisible] = useState(false);
+const [BioeditModalVisible, setBioEditModalVisible] = useState(false);
+
+const [AlturaeditModalVisible, setAlturaEditModalVisible] = useState(false);
+const [FilhoseditModalVisible, setFilhosEditModalVisible] = useState(false);
+const [AlcooleditModalVisible, setAlcoolEditModalVisible] = useState(false);
+const [LinguaseditModalVisible, setLinguasEditModalVisible] = useState(false);
+const [CivileditModalVisible, setCivilEditModalVisible] = useState(false);
+const [CigarroeditModalVisible, setCigarroEditModalVisible] = useState(false);
+const [SignoeditModalVisible, setSignoEditModalVisible] = useState(false);
+const [AnimaiseditModalVisible, setAnimaisEditModalVisible] = useState(false);
+const [ReligiaoeditModalVisible, setReligiaoEditModalVisible] = useState(false);
+const [PersonalidadeeditModalVisible, setPersonalidadeEditModalVisible] = useState(false);
+
+const [FquestioneditModalVisible, setFquestionEditModalVisible] = useState(false);
+const [SquestioneditModalVisible, setSquestionEditModalVisible] = useState(false);
+const [TquestioneditModalVisible, setTquestionEditModalVisible] = useState(false);
+
+const [InteresseseditModalVisible, setInteressesEditModalVisible] = useState(false);
+
+
+
+
+
+
    
 const calculateAge = (birthDate: string) => {
   const birth = new Date(birthDate);
@@ -141,7 +173,7 @@ useEffect(() => {
             sexualaty: data.sexualaty || '',
             smoking: data.smoking || '',
             status: data.status || 'offline',
-            verification: data.verification || 'unverified',
+            verification: data.verification,
             workplace: data.workplace || '',
             workposition: data.workposition || '',
             zoodiacsign: data.zoodiacsign || '',
@@ -186,10 +218,11 @@ useEffect(() => {
           setSexualaty(data.sexualaty || '');
           setSmoking(data.smoking || '');
           setStatus(data.status || 'offline');
-          setVerification(data.verification || 'unverified');
+          setVerification(data.verification || '');
           setWorkplace(data.workplace || '');
           setWorkposition(data.workposition || '');
           setZoodiacsign(data.zoodiacsign || '');
+          
         } else {
           setUserData(null);
         }
@@ -360,7 +393,7 @@ useEffect(() => {
   if (loading) return <ActivityIndicator size="large" color="#0000ff" />;
   if (!userData) return <Text>Usuário não encontrado</Text>;
 
-
+  
 
 
   return (
@@ -458,7 +491,7 @@ useEffect(() => {
             <TouchableOpacity
           style={styles.infoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setPesonalEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
           <Text style={styles.infoCardTitle}>
@@ -479,7 +512,7 @@ useEffect(() => {
            <TouchableOpacity
           style={styles.infoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setTrabalhoEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
           <Text style={styles.infoCardTitle}>
@@ -500,7 +533,7 @@ useEffect(() => {
            <TouchableOpacity
           style={styles.infoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setMoodEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
           <Text style={styles.infoCardTitle}>
@@ -521,7 +554,7 @@ useEffect(() => {
            <TouchableOpacity
           style={styles.infoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setBioEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
           <Text style={styles.infoCardTitle}>
@@ -545,7 +578,7 @@ useEffect(() => {
              <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setAlturaEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -573,7 +606,7 @@ useEffect(() => {
              <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setFilhosEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -600,7 +633,7 @@ useEffect(() => {
               <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setAlcoolEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -628,7 +661,7 @@ useEffect(() => {
               <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setLinguasEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -656,7 +689,7 @@ useEffect(() => {
               <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setCivilEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -684,7 +717,7 @@ useEffect(() => {
               <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setCigarroEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -712,7 +745,7 @@ useEffect(() => {
               <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setSignoEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -740,7 +773,7 @@ useEffect(() => {
               <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setAnimaisEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -769,7 +802,7 @@ useEffect(() => {
               <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setReligiaoEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -797,7 +830,7 @@ useEffect(() => {
               <TouchableOpacity
           style={styles.SecondinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setPersonalidadeEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
            <Icon 
@@ -821,21 +854,24 @@ useEffect(() => {
             />
         </TouchableOpacity>
         </View>
-         <View style={styles.SecondaryinfoCard}>
+
+
+        {/* Perguntas e Respostas*/}
+         <View style={styles.thirdyinfoCard}>
          <Text style={styles.infoCardTitle}>
          Perguntas e Respostas
           </Text>
 
 
-             {/* nome , idade , genero e pais */}
+             {/* pergunta 1*/}
              <TouchableOpacity
           style={styles.ThirdinfoCard}
           onPress={() => {
-            setEditModalVisible(true); // Abre o modal para editar nome e idade
+            setFquestionEditModalVisible(true); // Abre o modal para editar nome e idade
           }}
         >
           <Text style={styles.ThirdinfoCardTitle}>
-            {Question1}<Icon 
+            1. {Question1}<Icon 
               name="pencil" 
               size={24} 
               color="black" 
@@ -847,12 +883,130 @@ useEffect(() => {
           </Text>
     
         </TouchableOpacity>
+
+          {/* pergunta 2 */}
+          <TouchableOpacity
+          style={styles.ThirdinfoCard}
+          onPress={() => {
+            setSquestionEditModalVisible(true); // Abre o modal para editar nome e idade
+          }}
+        >
+          <Text style={styles.ThirdinfoCardTitle}>
+            2. {Question2}<Icon 
+              name="pencil" 
+              size={24} 
+              color="black" 
+              style={styles.ThirdeditIcon} 
+            />
+          </Text>
+          <Text style={styles.ThirdinfoCardText}>
+            {awnser2}
+          </Text>
+    
+        </TouchableOpacity>
+
+          {/* pergunta 3 */}
+          <TouchableOpacity
+          style={styles.ThirdinfoCard}
+          onPress={() => {
+            setTquestionEditModalVisible(true); // Abre o modal para editar nome e idade
+          }}
+        >
+          <Text style={styles.ThirdinfoCardTitle}>
+            3. {Question3}<Icon 
+              name="pencil" 
+              size={24} 
+              color="black" 
+              style={styles.ThirdeditIcon} 
+            />
+          </Text>
+          <Text style={styles.ThirdinfoCardText}>
+            {awnser3}
+          </Text>
+    
+        </TouchableOpacity>
         
         </View>
+
+          {/* interesses */}
+          <View style={styles.infoCard}>
+      <Text style={styles.infoCardTitle}>
+        Interesses
+        <Icon 
+          name="pencil" 
+          size={24} 
+          color="black" 
+          style={styles.editIcon} 
+        />
+      </Text>
+      <TouchableOpacity
+        style={styles.FirstinfoCard}
+        onPress={() => {
+          setInteressesEditModalVisible(true); // Abre o modal para editar nome e idade
+        }}
+      >
+
+        {/* Exibindo os interesses como chips */}
+        <View style={styles.chipContainer}>
+          {userData.interests && userData.interests.length > 0 ? (
+            userData.interests.map((interests, index) => (
+              <Chip  key={index} style={styles.chip}>
+                <Text style={styles.chipText}>#{interests}</Text>
+              </Chip>
+            ))
+          ) : (
+            <Text style={styles.infoCardText}>Nenhum interesse registrado</Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    </View>
+
+       {/* Verificação */}
+       <View style={styles.infoCard}>
+      <Text style={styles.infoCardTitle}>
+        Verificação 
         
+      </Text>
+      <View style={styles.FirstinfoCard}>
+          {verification === "unverified" ? (
+            <View style={styles.notVerifiedContainer}>
+              <Text style={styles.verificationText}>
+                Seu perfil ainda não foi verificado. 
+              </Text>
+              <TouchableOpacity style={styles.verificationButton}>
+                <Text style={styles.verificationButtonText}>Verificar agora</Text>
+              </TouchableOpacity>
+            </View>
+          ) : verification === "pending" ? (
+            <View style={styles.pendingContainer}>
+              <Text style={styles.verificationText}>
+                Sua verificação está pendente. Aguarde a aprovação.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.verifiedContainer}>
+              <Text style={styles.verificationText}>
+                Seu perfil está verificado!
+              </Text>
+            </View>
+          )}
+        </View>
+    </View>
+
+
+ 
       </ScrollView>
-  
-      {/* Modal */}
+
+
+
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+
+
+
+      {/* Modal Foto Perfil */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -917,57 +1071,438 @@ useEffect(() => {
         </SafeAreaView>
       </Modal>
 
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
 
-        {/* Modal de edição */}
-        <Modal
-        visible={editModalVisible}
-        animationType="slide"
-        onRequestClose={() => setEditModalVisible(false)}
+
+      <Modal
+  visible={editModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      {/* Botão de fechar */}
+      <TouchableOpacity 
+        style={styles.closeButtonContainer3} 
+        onPress={() => setEditModalVisible(false)}
       >
-        <SafeAreaView style={styles.modalContainer2}>
-          {/* Botão de fechar */}
-          <View style={styles.closeButtonContainer2}>
-            <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-              <Text style={styles.closeButtonText2}>✕</Text>
-            </TouchableOpacity>
-          </View>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
 
-          {/* Conteúdo */}
-          <View style={styles.modalContent2}>
-            <Text style={styles.modalTitle}>Editar Nome e Idade</Text>
-            <TextInput
-              style={styles.inputField}
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder="Nome"
-            />
-            <TextInput
-              style={styles.inputField}
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder="Sobrenome"
-            />
-            <TextInput
-              style={styles.inputField}
-              value={birthDate}
-              onChangeText={setBirthDate}
-              placeholder="Ano de nascimento"
-              keyboardType="numeric"
-            />
+      {/* Conteúdo do Modal */}
+      <Text style={styles.modalTitle2}>Editar Dados</Text>
+      <TextInput
+        style={styles.inputField2}
+        value={firstName}
+        onChangeText={setFirstName}
+        placeholder="Nome"
+      />
+      <TouchableOpacity
+        style={styles.saveButton2}
+        onPress={async () => {
+          await updateUserProfile();
+          setEditModalVisible(false);
+        }}
+      >
+        <Text style={styles.buttonText3}>Salvar</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
 
-            <TouchableOpacity
-              style={styles.saveButton}
-              onPress={async () => {
-                // Atualiza os dados na Firebase
-                await updateUserProfile(); // Função para atualizar os dados no Firestore
-                setEditModalVisible(false);
-              }}
-            >
-              <Text style={styles.buttonText2}>Salvar Alterações</Text>
-            </TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
+        {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+  {/* ----------------------------------------------------------------------------------------------------------------------------------------------------------- */}
+
+
+ {/* Modal - Editar Informação Pessoal */}
+<Modal
+  visible={PesonaleditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setPesonalEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setPesonalEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Informação Pessoal</Text>
+      {/* Campos específicos aqui */}
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Trabalho */}
+<Modal
+  visible={TrabalhoeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setTrabalhoEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setTrabalhoEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Trabalho</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Educação */}
+<Modal
+  visible={EducacaoeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setEducacaoEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setEducacaoEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Educação</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Mood */}
+<Modal
+  visible={MoodeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setMoodEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setMoodEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Mood</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Bio */}
+<Modal
+  visible={BioeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setBioEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setBioEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Bio</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Altura */}
+<Modal
+  visible={AlturaeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setAlturaEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setAlturaEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Altura</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Filhos */}
+<Modal
+  visible={FilhoseditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setFilhosEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setFilhosEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Informação sobre Filhos</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Álcool */}
+<Modal
+  visible={AlcooleditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setAlcoolEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setAlcoolEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Consumo de Álcool</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Línguas */}
+<Modal
+  visible={LinguaseditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setLinguasEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setLinguasEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Línguas</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Estado Civil */}
+<Modal
+  visible={CivileditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setCivilEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setCivilEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Estado Civil</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Cigarro */}
+<Modal
+  visible={CigarroeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setCigarroEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setCigarroEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Consumo de Cigarros</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Signo */}
+<Modal
+  visible={SignoeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setSignoEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setSignoEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Signo</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Animais */}
+<Modal
+  visible={AnimaiseditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setAnimaisEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setAnimaisEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Animais</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Religião */}
+<Modal
+  visible={ReligiaoeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setReligiaoEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setReligiaoEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Religião</Text>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal - Editar Personalidade */}
+<Modal
+  visible={PersonalidadeeditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setPersonalidadeEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity style={styles.closeButtonContainer3} onPress={() => setPersonalidadeEditModalVisible(false)}>
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+      <Text style={styles.modalTitle2}>Editar Personalidade</Text>
+    </View>
+  </View>
+</Modal>
+
+
+{/* Modal para Primeira Pergunta */}
+<Modal
+  visible={FquestioneditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setFquestionEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity 
+        style={styles.closeButtonContainer3} 
+        onPress={() => setFquestionEditModalVisible(false)}
+      >
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.modalTitle2}>Editar Primeira Pergunta</Text>
+      <TextInput
+        style={styles.inputField2}
+        placeholder="Digite a resposta..."
+        // Aqui colocarias o valor/controlador correto
+      />
+      <TouchableOpacity
+        style={styles.saveButton2}
+        onPress={() => setFquestionEditModalVisible(false)}
+      >
+        <Text style={styles.buttonText3}>Salvar</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal para Segunda Pergunta */}
+<Modal
+  visible={SquestioneditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setSquestionEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity 
+        style={styles.closeButtonContainer3} 
+        onPress={() => setSquestionEditModalVisible(false)}
+      >
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.modalTitle2}>Editar Segunda Pergunta</Text>
+      <TextInput
+        style={styles.inputField2}
+        placeholder="Digite a resposta..."
+      />
+      <TouchableOpacity
+        style={styles.saveButton2}
+        onPress={() => setSquestionEditModalVisible(false)}
+      >
+        <Text style={styles.buttonText3}>Salvar</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal para Terceira Pergunta */}
+<Modal
+  visible={TquestioneditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setTquestionEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity 
+        style={styles.closeButtonContainer3} 
+        onPress={() => setTquestionEditModalVisible(false)}
+      >
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.modalTitle2}>Editar Terceira Pergunta</Text>
+      <TextInput
+        style={styles.inputField2}
+        placeholder="Digite a resposta..."
+      />
+      <TouchableOpacity
+        style={styles.saveButton2}
+        onPress={() => setTquestionEditModalVisible(false)}
+      >
+        <Text style={styles.buttonText3}>Salvar</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+{/* Modal para Interesses */}
+<Modal
+  visible={InteresseseditModalVisible}
+  transparent
+  animationType="slide"
+  onRequestClose={() => setInteressesEditModalVisible(false)}
+>
+  <View style={styles.bottomModalContainer}>
+    <View style={styles.bottomModalContent}>
+      <TouchableOpacity 
+        style={styles.closeButtonContainer3} 
+        onPress={() => setInteressesEditModalVisible(false)}
+      >
+        <Text style={styles.closeButtonText3}>✕</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.modalTitle2}>Editar Interesses</Text>
+      <TextInput
+        style={styles.inputField2}
+        placeholder="Digite os interesses..."
+      />
+      <TouchableOpacity
+        style={styles.saveButton2}
+        onPress={() => setInteressesEditModalVisible(false)}
+      >
+        <Text style={styles.buttonText3}>Salvar</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+
     </SafeAreaView>
     </>
   );
@@ -1134,7 +1669,9 @@ const styles = StyleSheet.create({
   // Estilos para o Modal de Edição
   modalContainer2: {
     flex: 1,
-    backgroundColor: 'black',
+    justifyContent: 'center', // Centraliza na vertical
+    alignItems: 'center',     // Centraliza na horizontal
+    backgroundColor: 'rgba(0,0,0,0.1)', // Fundo escuro semi-transparente
   },
   closeButtonContainer2: {
     flexDirection: 'row',
@@ -1147,10 +1684,17 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   modalContent2: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 20,
     padding: 20,
+    alignItems: 'center',
+    elevation: 5, // Sombra no Android
+    shadowColor: '#000', // Sombra no iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    maxHeight: '70%', // O modal ocupa no máximo 70% da altura
   },
   modalTitle: {
     fontSize: 24,
@@ -1220,14 +1764,22 @@ const styles = StyleSheet.create({
     width: width * 1
   },
  
-
-  ThirdinfoCard: {
+  thirdyinfoCard: {
     backgroundColor: '#f5f5f5',
     flex: 2,
     borderRadius: 10,
     marginBottom: 10,
-    marginTop: height * 0.025,
+    justifyContent: 'center',
+    alignItems: 'center',
     width: width * 1
+  },
+  ThirdinfoCard: {
+    backgroundColor: 'white',
+    flex: 2,
+    borderRadius: 20,
+    marginBottom: 10,
+    marginTop: height * 0.01,
+    width: width * 0.95
     
   },
   ThirdeditIcon: {
@@ -1248,6 +1800,114 @@ const styles = StyleSheet.create({
     color: "grey",
     
   },
+  chipContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: -5,
+    marginLeft: 10,
+  },
+  chip: {
+    margin: 5,
+    backgroundColor: '#A7C7E7',
+    borderRadius: 30,
+  },
+  chipText: {
+    fontWeight: 'bold',   // Deixa o texto em negrito
+    color: 'black',       // Cor preta
+  },
+
+  verificationContainer: {
+    marginTop: 20,
+  },
+  notVerifiedContainer: {
+    backgroundColor: '#f8d7da',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  pendingContainer: {
+    backgroundColor: '#fff3cd',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  verifiedContainer: {
+    backgroundColor: '#d4edda',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  verificationText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  verificationButton: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    backgroundColor: '#007bff',
+    borderRadius: 5,
+  },
+  verificationButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  
+
+  bottomModalContainer: {
+    flex: 1,
+    justifyContent: 'flex-end', // Modal no fundo
+    backgroundColor: 'rgba(0,0,0,0.5)', // Fundo escuro semi-transparente
+  },
+  bottomModalContent: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '40%', // Só 40% da altura
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  closeButtonContainer3: {
+    alignSelf: 'flex-end',
+  },
+  closeButtonText3: {
+    fontSize: 24,
+    color: 'black',
+  },
+  modalTitle2: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    color: 'black',
+  },
+  inputField2: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 15,
+    fontSize: 16,
+  },
+  saveButton2: {
+    backgroundColor: '#4da6ff', // Azul bebê
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 10,
+    marginTop: 10,
+  },
+  buttonText3: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
 });
 
 

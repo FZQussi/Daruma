@@ -11,6 +11,8 @@ import Svg, { Path } from 'react-native-svg';
 import Swiper from 'react-native-swiper';
 import {  Appbar, Dialog, Portal, RadioButton, TextInput, Button, FAB} from 'react-native-paper';
 import { checkIfUserIsBanned } from '../checkIfUserIsBanned';
+import { getFunctions, httpsCallable } from "firebase/functions";
+const functions = getFunctions();
 const db = getFirestore(app);
 const auth = getAuth(app);
 const { width, height } = Dimensions.get('window');
@@ -47,7 +49,7 @@ const MatchScreen = () => {
   const [currentMatchId, setCurrentMatchId] = useState<string | null>(null);
   const [lastVisibleProfile, setLastVisibleProfile] = useState<QueryDocumentSnapshot | null>(null);
   const [allProfilesLoaded, setAllProfilesLoaded] = useState<boolean>(false);
-
+  const likeUserFunction = httpsCallable(functions, "likeUser");
   const currentUser = auth.currentUser;
   const showDialog = () => setVisible(true);
   const hideDialog = () => setVisible(false);
